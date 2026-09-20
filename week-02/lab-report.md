@@ -39,25 +39,26 @@ n/a — used Python
 **Prompt sent** (should be exactly one sentence):
 
 ```
-
+Write Python code to analyze student marks.
 ```
 
 **Assumptions the AI made that I never gave it** — list them, one per line. A data format, a pass
 threshold, a rounding rule, an input method, an invented feature all count.
 
-1.
-2.
-3.
+1. It assumed that the function should be named `analyze_marks` and that the default pass mark should be 50.
+2. It assumed that valid marks must be between 0 and 100.
+3. It assumed that the function should return a dictionary with `average`, `highest`, `lowest`, and `pass_rate`.
+4. It assumed that an empty list and out-of-range marks should raise `ValueError`.
+5. It assumed that non-numeric marks should raise `TypeError`.
 
 **Questions it should have asked and did not:**
 
-1.
-2.
+1. What should happen for empty, non-numeric, or out-of-range input?
+2. What exact function signature and return structure are required?
 
-**Is the function named `analyze_marks` with the required signature?** yes / no — if no, what is it
-called:
+**Is the function named `analyze_marks` with the required signature?** yes
 
-**First impression before testing** (one sentence — you will compare this with section 6 later):
+**First impression before testing:** The code looks surprisingly close to the required solution, but some validation choices may not match the exact specification.
 
 ---
 
@@ -66,18 +67,23 @@ called:
 **Prompt sent** (paste it in full, including any substitutions):
 
 ```
-
+You are a Python developer. Implement analyze_marks(marks, pass_mark=50). Return
+average, highest, lowest, and pass_rate in a dictionary. Accept marks from 0 to 100;
+raise ValueError for an empty list, non-numeric values, or out-of-range values. Use
+no external libraries. Return code plus a short explanation.
 ```
 
 **What B fixed compared to A:**
 
-1.
-2.
+1. It explicitly required the function name and signature `analyze_marks(marks, pass_mark=50)`.
+2. It explicitly required the return value to be a dictionary with `average`, `highest`, `lowest`, and `pass_rate`.
+3. It required `ValueError` for empty, non-numeric, and out-of-range input, so unlike Prompt A the generated code uses `ValueError` for non-numeric marks.
+4. It specified the valid range from 0 to 100 and required no external libraries.
 
 **What B still leaves open:**
 
-1.
-2.
+1. It does not specify whether `pass_rate` should be rounded, so the generated code returns the full floating-point value.
+2. It does not explicitly state whether a mark equal to `pass_mark` should pass; the generated code assumed `>=`.
 
 ---
 
