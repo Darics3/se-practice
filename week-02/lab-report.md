@@ -92,25 +92,34 @@ no external libraries. Return code plus a short explanation.
 **What I appended to Prompt B:**
 
 ```
-
+Example: analyze_marks([40, 60, 80], 50) → average 60, highest 80, lowest 40,
+pass_rate 66.67. Include tests for: one mark, decimals, custom pass_mark, empty list,
+text value, and marks below 0 or above 100. State any remaining assumptions before
+the code.
 ```
 
 **Tests the AI wrote for itself** — how many, and which situations do they cover?
 
 | Situation | Covered by the AI's tests? |
 | --- | --- |
-| one mark | |
-| decimals | |
-| custom pass_mark | |
-| empty list | |
-| text value | |
-| below 0 / above 100 | |
+| one mark | yes |
+| decimals | yes |
+| custom pass_mark | yes |
+| empty list | yes |
+| text value | yes |
+| below 0 / above 100 | yes |
 
-**Do the AI's own tests pass against the AI's own code?** yes / no
+**Do the AI's own tests pass against the AI's own code?** yes 
 
 **Do they agree with the harness in section 6?** yes / no — if no, where do they disagree:
 
 **Assumptions C stated explicitly before the code:**
+
+1. `pass_mark` must be numeric and between 0 and 100.
+2. A mark passes when `mark >= pass_mark`.
+3. `pass_rate` is returned as a percentage rounded to 2 decimal places.
+4. `average` is rounded to 2 decimal places.
+5. Boolean values such as `True` and `False` are rejected even though Python treats them as integers.
 
 ---
 
@@ -119,16 +128,42 @@ no external libraries. Return code plus a short explanation.
 **The complete prompt I wrote** (one message, sent to a fresh chat):
 
 ```
+You are a Python developer. Implement a function analyze_marks(marks, pass_mark=50).
 
+The function must return one dictionary containing exactly these four keys:
+average, highest, lowest, and pass_rate.
+
+Marks must be numeric values from 0 to 100 inclusive. The marks list must not be empty. Raise ValueError for an empty list, any non-numeric mark, or any mark outside the range 0 to 100. Boolean values should not be accepted as numeric marks.
+
+A mark passes when mark >= pass_mark. pass_mark must be numeric and between 0 and 100; otherwise raise ValueError.
+
+Use no external libraries.
+
+Calculate average, highest, and lowest from the valid marks. Return pass_rate as a percentage rounded to 2 decimal places. This resolves the rounding ambiguity: for example, 2 passing marks out of 3 must return 66.67, not 66.6666666667.
+
+Worked example:
+analyze_marks([40, 60, 80], 50) should return:
+{"average": 60.0, "highest": 80, "lowest": 40, "pass_rate": 66.67}
+
+Also include tests for:
+1. one mark,
+2. decimal marks,
+3. a custom pass_mark,
+4. an empty list raising ValueError,
+5. a text value raising ValueError,
+6. marks below 0 or above 100 raising ValueError.
+
+Return the code and a short explanation. State any assumptions before the code.
 ```
 
 **What I deliberately added that A, B and C did not have:**
 
-1.
-2.
-3.
+1. I explicitly required pass_mark itself to be numeric and between 0 and 100.
+2. I explicitly rejected Boolean values even though Python treats bool as a subtype of int.
+3. I explicitly defined the rounding rule for pass_rate: round the percentage to 2 decimal places.
 
-**The ambiguity I found in the specification, and how I resolved it inside Prompt D:**
+**The ambiguity I found in the specification, and how I resolved it inside Prompt D:** 
+The specification expects pass_rate to be 66.67 when two out of three marks pass, but the raw calculation gives 66.666666.... The specification did not directly state the rounding rule. I resolved this ambiguity in Prompt D by explicitly requiring pass_rate to be rounded to 2 decimal places.
 
 ---
 
