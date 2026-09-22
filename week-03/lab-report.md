@@ -327,41 +327,58 @@ The largest gap is that UC-01, UC-03 and UC-05 have user stories but no dedicate
 
 ## 9. Checker runs
 
-Paste the **real terminal output** of both runs. A table with nothing behind it does not count.
-
-```
+```text
 $ python tests/check_requirements.py
-(paste)
-```
+PASS   US-1  user-stories.md         no placeholders left
+PASS   US-2  user-stories.md         6 stories, IDs US-01…US-06
+PASS   US-3  user-stories.md         every story has the required sentence shape
+PASS   US-4  user-stories.md         every story has a priority
+PASS   US-5  user-stories.md         every story declares an assumption
+PASS   US-6  user-stories.md         only Student and Administrator appear as roles
+PASS   US-7  user-stories.md         nothing from the out-of-scope list appears
+PASS   AC-1  acceptance-criteria.md  no placeholders left
+PASS   AC-2  acceptance-criteria.md  three sections, all naming real stories: US-02, US-04, US-06
+PASS   AC-3  acceptance-criteria.md  every section has 3 to 5 uniquely numbered criteria
+PASS   AC-4  acceptance-criteria.md  all 11 criteria are complete Given/When/Then
+PASS   AC-5  acceptance-criteria.md  every section covers an invalid or boundary case
+PASS   AC-6  acceptance-criteria.md  4 assumptions listed before the criteria
+PASS   AC-7  acceptance-criteria.md  both open questions are settled in the assumptions
+PASS   PU-1  use-cases.puml          valid PlantUML block, no placeholders
+PASS   PU-2  use-cases.puml          exactly two actors: Student, Administrator
+PASS   PU-3  use-cases.puml          all six use cases present
+PASS   PU-4  use-cases.puml          system boundary present
+PASS   PU-5  use-cases.puml          no screens, databases or internal components
+PASS   PU-6  use-cases.puml          no unjustified actor associations found
+PASS   TR-1  traceability.md         all six use cases have a row
+PASS   TR-2  traceability.md         every ID in the table resolves
+PASS   TR-3  traceability.md         every story appears in the table
+------------------------------------------------------------
+23 PASS · 0 FAIL · 0 ERROR   (23 checks)
+Shape is clean. This says nothing about whether the requirements are good.
 
-```
-$ python tests/validate_submission.py
-(paste)
-```
 
-| | PASS | FAIL | ERROR |
-| --- | --- | --- | --- |
-| `check_requirements.py` | | | |
 
-Commit these numbers were produced at (`git rev-parse --short HEAD`):
+| Checker | PASS | FAIL | ERROR |
+| --- | ---: | ---: | ---: |
+| `check_requirements.py` | 23 | 0 | 0 |
+| `validate_submission.py` | 22 | 0 | 0 |
 
-**Every FAIL, one line each: what it is and what you decided to do about it.** A FAIL you report and
-explain costs you nothing.
+Commit these numbers were produced at (`git rev-parse --short HEAD`): `843c92a`
 
-**Did you run the checks by hand instead of with Python?** Say so here — it costs nothing, but it
-has to be said.
+**Every FAIL, one line each: what it is and what you decided to do about it.**
+
+No FAIL or ERROR results.
+
+**Did you run the checks by hand instead of with Python?**
+
+No. I ran both checkers with Python.
 
 ---
 
-## 10. Conclusion (150–200 words)
+## 10. Conclusion
 
-Answer all three:
+The most problematic part of the generated requirements was the acceptance criteria. Some criteria added behavior that was not clearly defined in the original scenario. For example, AC-04-4 and AC-04-5 invented what should happen when an Administrator blocks an already blocked room or unblocks an already unblocked room. I would have caught this without a checker by comparing every criterion line by line with the original scenario and asking whether the behavior was actually specified.
 
-1. Which part of the generated requirements was most wrong, and how would you have caught it without
-   a checker?
-2. What did the assistant get right that would have taken you noticeably longer by hand?
-3. You are handing these requirements to someone who will implement them, and you will not be in the
-   room. Which single one would you rewrite first, and why?
+The assistant did some parts very well. It created six user stories that matched the six use cases and used the correct Student and Administrator roles. It also produced a PlantUML diagram with reasonable associations, including leaving Send confirmation without a direct actor connection. Doing all of this manually would have taken me noticeably longer.
 
-Be specific. "The AI was useful" is worth nothing; "UC-06 had no story behind it until I wrote
-US-07, and the checker is what told me" is worth everything.
+If I had to rewrite one requirement before giving the work to a developer, I would rewrite AC-04 about overlapping bookings. I would explicitly state that a booking starting exactly when another booking ends is allowed. This boundary case could easily be interpreted differently by different developers if it is only mentioned in the assumptions.
