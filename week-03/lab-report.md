@@ -91,7 +91,121 @@ I ended with 6 stories because each story maps directly to one of the six fixed 
 ## 4. Original AI output — acceptance criteria (Part 3)
 
 ```
-(paste here)
+## US-02 — Book Room
+
+**User Story:**
+As a Student, I want to book a free room for a time slot, so that I can reserve it for individual or group study.
+
+**Assumptions:**
+
+* The selected room and time slot are available when the booking request is submitted.
+* A booking is created only if it satisfies rules R1–R4.
+* A booking must start in the future.
+* A booking may last no longer than two hours.
+* Two bookings for the same room cannot overlap.
+* A blocked room cannot be booked.
+
+### Acceptance Criteria
+
+**AC-02-1 — Successful booking**
+**Given** a room is not blocked and the selected time slot is free
+**And** the booking starts in the future
+**And** the duration is two hours or less
+**When** the Student submits the booking
+**Then** the system creates the booking for that room and time slot.
+
+**AC-02-2 — Past or current time**
+**Given** the Student selects a booking start time that is not in the future
+**When** the Student submits the booking
+**Then** the system rejects the booking and indicates that the booking must start in the future.
+
+**AC-02-3 — Duration longer than two hours**
+**Given** the Student selects a time slot longer than two hours
+**When** the Student submits the booking
+**Then** the system rejects the booking and indicates that the maximum booking duration is two hours.
+
+**AC-02-4 — Overlapping booking**
+**Given** another booking already exists for the same room during all or part of the selected time slot
+**When** the Student submits the booking
+**Then** the system rejects the booking and indicates that the room is not available for that time slot.
+
+**AC-02-5 — Blocked room**
+**Given** the selected room is blocked by an Administrator
+**When** the Student attempts to book the room
+**Then** the system rejects the booking and indicates that the room is unavailable.
+
+## US-04 — Block or Unblock Room
+
+**User Story:**
+As an Administrator, I want to block or unblock a room, so that rooms can be taken out of service and later returned to use.
+
+**Assumptions:**
+
+* Only the Administrator performs the block or unblock action.
+* A blocked room cannot accept new bookings according to R4.
+* Unblocking a room makes it available for future bookings, subject to R1–R3.
+* The handling of bookings created before a room is blocked is outside the defined requirements.
+
+### Acceptance Criteria
+
+**AC-04-1 — Successfully block a room**
+**Given** a room is currently unblocked
+**When** the Administrator blocks the room
+**Then** the system marks the room as blocked and prevents new bookings for that room.
+
+**AC-04-2 — Blocked room cannot be booked**
+**Given** a room has been blocked by the Administrator
+**When** a Student attempts to create a booking for that room
+**Then** the system rejects the booking and indicates that the room is unavailable.
+
+**AC-04-3 — Successfully unblock a room**
+**Given** a room is currently blocked
+**When** the Administrator unblocks the room
+**Then** the system marks the room as unblocked and allows valid future bookings subject to R1–R3.
+
+**AC-04-4 — Block an already blocked room**
+**Given** a room is already blocked
+**When** the Administrator attempts to block it again
+**Then** the room remains blocked and the system indicates that it is already blocked.
+
+**AC-04-5 — Unblock an already unblocked room**
+**Given** a room is already unblocked
+**When** the Administrator attempts to unblock it again
+**Then** the room remains unblocked and the system indicates that it is already available.
+
+## US-06 — Send Confirmation
+
+**User Story:**
+As a Student, I want to receive confirmation after a booking or cancellation, so that I know the requested action was completed.
+
+**Assumptions:**
+
+* Confirmation is produced only after a booking or cancellation has been successfully completed.
+* A booking must satisfy R1–R4 before a booking confirmation can be produced.
+* An unsuccessful booking or cancellation does not produce a success confirmation.
+
+### Acceptance Criteria
+
+**AC-06-1 — Confirmation after successful booking**
+**Given** the Student submits a booking that starts in the future, lasts no more than two hours, does not overlap another booking, and is for an unblocked room
+**When** the booking is successfully created
+**Then** the system sends a confirmation that the booking was completed.
+
+**AC-06-2 — Confirmation after successful cancellation**
+**Given** the Student has an existing booking
+**When** the Student successfully cancels that booking
+**Then** the system sends a confirmation that the cancellation was completed.
+
+**AC-06-3 — No confirmation for invalid booking**
+**Given** a booking violates at least one of R1–R4
+**When** the Student submits the booking
+**Then** the system rejects the booking and does not send a booking confirmation.
+
+**AC-06-4 — No confirmation for unsuccessful cancellation**
+**Given** the requested cancellation cannot be completed
+**When** the Student submits the cancellation request
+**Then** the system does not send a cancellation confirmation and indicates that the cancellation was unsuccessful.
+
 ```
 
 ---
@@ -100,16 +214,32 @@ I ended with 6 stories because each story maps directly to one of the six fixed 
 
 | Criterion (as generated) | Problem | What I changed it to | Final ID |
 | --- | --- | --- | --- |
-| | | | |
+| AC-02-1 | ID does not follow the required global AC-nn scheme. Otherwise the successful-booking behavior is valid. | Kept the behavior and renumbered it. | AC-01 |
+| AC-02-2 | Correct invalid case, but the ID format is wrong. | Kept the past/current-time rejection and renumbered it. | AC-02 |
+| AC-02-3 | Correct validation case, but it does not explicitly settle whether exactly two hours is valid. | Kept rejection for more than two hours and explicitly declared that exactly two hours is allowed. | AC-03 |
+| AC-02-4 | Correct overlap case, but it does not define whether touching bookings overlap. | Kept it and explicitly declared that a booking starting when another ends is allowed. | AC-04 |
+| AC-02-5 | Correct R4 invalid case; ID format is wrong. | Kept the blocked-room rejection and renumbered it. | AC-05 |
+| AC-04-1 | Valid behavior but ID format is wrong. | Kept and renumbered. | AC-06 |
+| AC-04-2 | This repeats the blocked-room booking validation already covered by US-02, but it is useful for verifying the effect of blocking. | Kept a shorter version as the alternative case for US-04. | AC-08 |
+| AC-04-3 | Valid unblock behavior but ID format is wrong. | Kept and renumbered. | AC-07 |
+| AC-04-4 | The scenario never specifies what message or behavior is required when blocking an already blocked room. | Removed it rather than inventing behavior. | — |
+| AC-04-5 | The scenario never specifies what should happen when unblocking an already unblocked room. | Removed it rather than inventing behavior. | — |
+| AC-06-1 | Valid confirmation behavior, but ID format is wrong. | Kept and renumbered. | AC-09 |
+| AC-06-2 | Valid cancellation-confirmation behavior, but ID format is wrong. | Kept and renumbered. | AC-10 |
+| AC-06-3 | Good negative case. | Kept and renumbered. | AC-11 |
+| AC-06-4 | “Cancellation cannot be completed” is too vague to become a precise test because the scenario does not define the failure condition. | Removed it rather than inventing a cancellation rule. | — |
+
 
 **The two open questions.** Write your decision and the reason. Either answer is accepted.
 
 | Question | My decision | Why |
 | --- | --- | --- |
-| A booking ending exactly when another begins — overlap under R3? | allowed / not-allowed | |
-| Is exactly two hours allowed under R2? | allowed / not-allowed | |
+| A booking ending exactly when another begins — overlap under R3? | allowed | The bookings touch at the boundary but do not occupy the room at the same time. |
+| Is exactly two hours allowed under R2? | allowed | R2 says a booking lasts at most two hours, so exactly two hours is within the allowed maximum. |
 
 **Which invalid or boundary case did the assistant leave out?**
+
+The assistant did not explicitly cover the two boundary cases required by the scenario: a booking that starts exactly when another booking ends, and a booking lasting exactly two hours. I resolved both in the final assumptions: touching bookings are allowed, and exactly two hours is allowed.
 
 ---
 
