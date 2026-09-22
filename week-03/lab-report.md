@@ -392,7 +392,7 @@ Shape is fine. This says nothing about whether the work is good.
 | `check_requirements.py` | 23 | 0 | 0 |
 | `validate_submission.py` | 22 | 0 | 0 |
 
-Commit these numbers were produced at (`git rev-parse --short HEAD`): `843c92a`
+Commit these numbers were produced at (`git rev-parse --short HEAD`): `bfac4c4`
 
 **Every FAIL, one line each: what it is and what you decided to do about it.**
 
