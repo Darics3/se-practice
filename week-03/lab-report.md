@@ -245,9 +245,6 @@ The assistant did not explicitly cover the two boundary cases required by the sc
 
 ## 6. Original AI output — use-case diagram (Part 4)
 
-```
-## 6. Original AI output — use-case diagram (Part 4)
-
 ```plantuml
 @startuml
 left to right direction
@@ -284,12 +281,6 @@ Rendered diagram: `requirements/use-cases.jpg`
 
 ## 7. Diagram review (Part 4)
 
-
-Потом **Section 7 — Diagram review** заполни так:
-
-```markdown
-## 7. Diagram review (Part 4)
-
 | Element | Problem | What I changed |
 | --- | --- | --- |
 | Student → View availability | No problem. Student triggers this function. | Kept unchanged. |
@@ -317,7 +308,7 @@ Summarise what the table in `requirements/traceability.md` shows:
 
 - Use cases with **no story** behind them: none
 - Stories with **no use case** they belong to: none
-- Criteria that test **no rule** from section 1: AC-10 tests the confirmation of a successful cancellation rather than one of business rules R1–R4.
+- Criteria that test **no rule** from section 1: AC-07 tests the unblock behavior, AC-09 tests confirmation after a successful booking, and AC-10 tests confirmation after a successful cancellation. These criteria support the use cases but do not directly test one of R1–R4.
 
 **What does the largest gap tell you about the generated requirements?**
 
@@ -357,6 +348,44 @@ PASS   TR-3  traceability.md         every story appears in the table
 Shape is clean. This says nothing about whether the requirements are good.
 
 
+### Submission validator
+
+```text
+$ python tests/validate_submission.py
+submission.yml — submission.yml
+PASS   schema                                  1
+PASS   week                                    03
+PASS   student.name                            Darkhan Izbassarov
+PASS   student.student_id                      24B031815
+PASS   student.github                          Darics3
+PASS   assistant.tool                          ChatGPT
+PASS   assistant.model                         GPT-5.6 Sol
+PASS   counts.user_stories                     6
+PASS   counts.acceptance_criteria_sets         3
+PASS   checker                                 23 PASS · 0 FAIL · 0 ERROR
+NOTE   checker                                 you are claiming a clean run — it will be re-run at your commit, so make sure it is true
+PASS   checker.commit                          843c92a
+PASS   assumptions.overlap_touching_bookings   allowed
+PASS   assumptions.exactly_two_hours           allowed
+PASS   traceability.use_cases_not_covered      []
+PASS   traceability.stories_not_traced         []
+NOTE   traceability                            you are claiming full coverage in both directions — that is rare on a first pass, and it is checked
+PASS   review_findings                         4 findings
+PASS   review_findings[1]                      US-06 mentioned out-of-scope notification types in its generated assumption...
+PASS   review_findings[2]                      AC-03 did not explicitly settle whether a booking lasting exactly two hours is valid...
+PASS   review_findings[3]                      AC-04 did not explicitly settle whether touching bookings overlap...
+PASS   review_findings[4]                      UC-06 Send confirmation was correctly left without a direct actor association...
+PASS   honesty.can_explain_everything_submitted yes
+PASS   honesty.ai_usage_disclosed               yes
+----------------------------------------------------------------
+22 PASS · 0 FAIL · 0 ERROR · 2 note
+
+Shape is fine. This says nothing about whether the work is good.
+
+22 PASS · 0 FAIL · 0 ERROR · 2 note
+Shape is fine. This says nothing about whether the work is good.
+
+
 
 | Checker | PASS | FAIL | ERROR |
 | --- | ---: | ---: | ---: |
@@ -373,12 +402,14 @@ No FAIL or ERROR results.
 
 No. I ran both checkers with Python.
 
+
 ---
+
 
 ## 10. Conclusion
 
-The most problematic part of the generated requirements was the acceptance criteria. Some criteria added behavior that was not clearly defined in the original scenario. For example, AC-04-4 and AC-04-5 invented what should happen when an Administrator blocks an already blocked room or unblocks an already unblocked room. I would have caught this without a checker by comparing every criterion line by line with the original scenario and asking whether the behavior was actually specified.
+The biggest problem I found was in the acceptance criteria because some of them added behavior that was not clearly defined in the original scenario. For example, AC-04-4 and AC-04-5 decided what should happen if an already blocked room is blocked again or an already unblocked room is unblocked again. I think this is risky because a developer could implement behavior that was never actually required. Without a checker, I would catch this by comparing every criterion with the original scenario.
 
-The assistant did some parts very well. It created six user stories that matched the six use cases and used the correct Student and Administrator roles. It also produced a PlantUML diagram with reasonable associations, including leaving Send confirmation without a direct actor connection. Doing all of this manually would have taken me noticeably longer.
+The AI did a good job with the user stories and the use-case diagram. It matched the six stories to the six use cases and connected Student and Administrator correctly. Creating this structure manually would take me more time.
 
-If I had to rewrite one requirement before giving the work to a developer, I would rewrite AC-04 about overlapping bookings. I would explicitly state that a booking starting exactly when another booking ends is allowed. This boundary case could easily be interpreted differently by different developers if it is only mentioned in the assumptions.
+If I had to rewrite one requirement first, I would rewrite the overlap rule in AC-04. I would clearly state that if one booking ends exactly when another begins, it is allowed. Two developers could understand the rule differently if this boundary case is not written clearly, which could lead to different implementations of the same requirement.

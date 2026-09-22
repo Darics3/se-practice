@@ -14,7 +14,7 @@ everything you submit, including everything an AI tool produced.
 
 **Did you use AI for anything beyond the three verbatim prompts?**
 
-Yes. I used ChatGPT GPT-5.6 Sol to help review the generated requirements, identify scope and ambiguity issues, word review findings, revise the acceptance criteria, prepare the traceability table, interpret checker output, and fill parts of `submission.yml` and `lab-report.md`.
+Yes. I used ChatGPT to clarify the lab instructions, discuss possible issues in the generated artifacts, and help interpret checker output. I made the final review decisions, checker measurements, submission values, and conclusion myself.
 
 **Everything I submitted, I can explain and defend in class:** yes
 
