@@ -1,0 +1,39 @@
+schema: 1
+week: "03"
+
+student:
+  name: Darkhan Izbassarov
+  student_id: 24B031815
+  github: Darics3
+
+assistant:
+  tool: ChatGPT
+  model: GPT-5.6 Sol
+
+counts:
+  user_stories: 6
+  acceptance_criteria_sets: 3
+
+checker:
+  pass: 23
+  fail: 0
+  error: 0
+  commit: bfac4c4
+
+assumptions:
+  overlap_touching_bookings: allowed
+  exactly_two_hours: allowed
+
+traceability:
+  use_cases_not_covered: []
+  stories_not_traced: []
+
+review_findings:
+  - "US-06 mentioned out-of-scope notification types in its generated assumption, so I rewrote the assumption to keep only booking and cancellation confirmation."
+  - "AC-03 did not explicitly settle whether a booking lasting exactly two hours is valid, so I declared exactly two hours allowed under R2."
+  - "AC-04 did not explicitly settle whether touching bookings overlap, so I declared a booking starting exactly when another ends as allowed under R3."
+  - "UC-06 Send confirmation was correctly left without a direct actor association because the system triggers confirmation after booking or cancellation."
+
+honesty:
+  can_explain_everything_submitted: yes
+  ai_usage_disclosed: yes
