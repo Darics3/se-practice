@@ -246,23 +246,68 @@ The assistant did not explicitly cover the two boundary cases required by the sc
 ## 6. Original AI output — use-case diagram (Part 4)
 
 ```
-(paste the PlantUML source exactly as generated)
+## 6. Original AI output — use-case diagram (Part 4)
+
+```plantuml
+@startuml
+left to right direction
+
+actor Student
+actor Administrator
+
+rectangle "Smart Campus Study Room Booking System" {
+
+    usecase "View availability" as UC01
+    usecase "Book room" as UC02
+    usecase "Cancel booking" as UC03
+    usecase "Block or unblock room" as UC04
+    usecase "Review usage" as UC05
+    usecase "Send confirmation" as UC06
+}
+
+Student -- UC01
+Student -- UC02
+Student -- UC03
+
+Administrator -- UC04
+Administrator -- UC05
+
+UC02 ..> UC06 : <<include>>
+UC03 ..> UC06 : <<include>>
+
+@enduml
 ```
 
-Rendered diagram (image, or a link):
+Rendered diagram: `requirements/use-cases.jpg`
 
 ---
 
 ## 7. Diagram review (Part 4)
 
+
+Потом **Section 7 — Diagram review** заполни так:
+
+```markdown
+## 7. Diagram review (Part 4)
+
 | Element | Problem | What I changed |
 | --- | --- | --- |
-| | | |
+| Student → View availability | No problem. Student triggers this function. | Kept unchanged. |
+| Student → Book room | No problem. Student triggers this function. | Kept unchanged. |
+| Student → Cancel booking | No problem. Student triggers this function. | Kept unchanged. |
+| Administrator → Block or unblock room | No problem. This is an Administrator responsibility. | Kept unchanged. |
+| Administrator → Review usage | No problem. The Administrator reviews room usage. | Kept unchanged. |
+| Send confirmation | The AI correctly did not connect a person directly to this use case because confirmation is produced by the system. | Kept without a direct actor association. |
+| Book room → Send confirmation | The `<<include>>` relationship is justified because a completed booking is confirmed by the system. | Kept unchanged. |
+| Cancel booking → Send confirmation | The `<<include>>` relationship is justified because a completed cancellation is confirmed by the system. | Kept unchanged. |
 
-**Associations.** Which actor–use-case links did the assistant draw that a person does not actually
-trigger? Name them.
+**Associations. Which actor–use-case links did the assistant draw that a person does not actually trigger? Name them.**
+
+None. The generated diagram did not connect any actor to a use case that the actor does not trigger. In particular, it correctly connected `Review usage` only to Administrator and did not directly connect Student or Administrator to `Send confirmation`.
 
 **Did any screen, database or internal component appear as a use case or an actor?**
+
+No. The diagram contains only the two required actors and the six fixed business use cases.
 
 ---
 
@@ -270,11 +315,13 @@ trigger? Name them.
 
 Summarise what the table in `requirements/traceability.md` shows:
 
-- Use cases with **no story** behind them:
-- Stories with **no use case** they belong to:
-- Criteria that test **no rule** from section 1:
+- Use cases with **no story** behind them: none
+- Stories with **no use case** they belong to: none
+- Criteria that test **no rule** from section 1: AC-10 tests the confirmation of a successful cancellation rather than one of business rules R1–R4.
 
 **What does the largest gap tell you about the generated requirements?**
+
+The largest gap is that UC-01, UC-03 and UC-05 have user stories but no dedicated acceptance criteria. This happened because the task required acceptance criteria for only three selected stories. The traceability table makes this limitation visible instead of hiding it or inventing additional criteria.
 
 ---
 
