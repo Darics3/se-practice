@@ -1,0 +1,87 @@
+@startuml
+
+title Smart Campus Study Room Booking - Domain Class Diagram
+
+class Student {
+    - studentId : String
+    + viewAvailability()
+    + bookRoom(room : Room, startTime : DateTime, endTime : DateTime) : Booking
+    + cancelBooking(booking : Booking)
+}
+
+class Room {
+    - roomId : String
+    - blocked : Boolean
+    + isAvailable(startTime : DateTime, endTime : DateTime) : Boolean
+    + block()
+    + unblock()
+}
+
+class Booking {
+    - bookingId : String
+    - startTime : DateTime
+    - endTime : DateTime
+    - status : String
+    + cancel()
+    + conflictsWith(other : Booking) : Boolean
+    + hasValidDuration() : Boolean
+}
+
+class Administrator {
+    - administratorId : String
+    + blockRoom(room : Room)
+    + unblockRoom(room : Room)
+    + reviewUsage()
+}
+
+class Confirmation {
+    - confirmationId : String
+    - action : String
+    - createdAt : DateTime
+}
+
+Student "1" -- "0..*" Booking : makes >
+Room "1" -- "0..*" Booking : reserved through >
+
+Administrator ..> Room : manages >
+Administrator ..> Booking : reviews usage >
+
+Booking "1" -- "0..*" Confirmation : produces >
+
+note right of Booking
+R1: Start must be in the future.
+Duration must be > 0 and <= 2 hours.
+
+R2: Active bookings for the same
+room must not overlap.
+end note
+
+note right of Room
+R3: A blocked room cannot
+accept a new booking.
+end note
+
+note right of Confirmation
+R4 / US-06:
+Successful booking produces
+a confirmation.
+Cancellation also produces
+confirmation according to US-06.
+end note
+
+note as ASSUMPTIONS
+Assumptions:
+1. Each Booking belongs to exactly one Student.
+2. Each Booking reserves exactly one Room.
+3. A Student may have zero or many bookings.
+4. A Room may have zero or many bookings over time.
+5. Administrator actions are modeled as dependencies,
+   not ownership relationships.
+6. Confirmation is modeled because R4 and US-06
+   explicitly require confirmation.
+7. No inheritance or composition is assumed.
+8. Payments, equipment, recurring bookings,
+   waiting lists and registration are not modeled.
+end note
+
+@enduml

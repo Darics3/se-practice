@@ -1,0 +1,76 @@
+@startuml
+
+title Smart Campus Study Room Booking - Revised Domain Class Diagram
+
+class Student {
+    - studentId : String
+    + viewAvailability()
+    + bookRoom(room : Room, startTime : DateTime, endTime : DateTime) : Booking
+    + cancelOwnBooking(booking : Booking)
+}
+
+class Room {
+    - roomId : String
+    - blocked : Boolean
+    + isAvailable(startTime : DateTime, endTime : DateTime) : Boolean
+    + block()
+    + unblock()
+}
+
+class Booking {
+    - bookingId : String
+    - startTime : DateTime
+    - endTime : DateTime
+    - status : String
+    + cancel()
+    + conflictsWith(other : Booking) : Boolean
+    + hasValidTimeRange(now : DateTime) : Boolean
+}
+
+class Administrator {
+    - administratorId : String
+    + blockRoom(room : Room)
+    + unblockRoom(room : Room)
+    + reviewRoomUsage(startTime : DateTime, endTime : DateTime)
+}
+
+class Confirmation {
+    - confirmationId : String
+    - action : String
+    - createdAt : DateTime
+}
+
+Student "1" -- "0..*" Booking : makes >
+Room "1" -- "0..*" Booking : reserves >
+
+Booking "1" -- "1..2" Confirmation : produces >
+
+note right of Booking
+R1: Start must be in the future.
+Duration must be > 0 and <= 2 hours.
+
+R2: Active bookings for the same
+room must not overlap.
+
+Assumption: bookings that only touch
+at a boundary do not overlap.
+end note
+
+note right of Room
+R3: A blocked room cannot
+accept a new booking.
+
+Assumption: blocking a room prevents
+new bookings only. Existing bookings
+remain unchanged.
+end note
+
+note right of Confirmation
+R4: A successful booking
+produces a confirmation.
+
+US-06: successful cancellation
+also produces confirmation.
+end note
+
+@enduml
