@@ -5,13 +5,13 @@ actor Student
 actor Administrator
 
 rectangle "Smart Campus Study Room Booking System" {
-
-    usecase "View room\navailability" as UC1
-    usecase "Book room" as UC2
-    usecase "Cancel own\nbooking" as UC3
-    usecase "Block or\nunblock room" as UC4
-    usecase "Review room\nusage" as UC5
-    usecase "Receive\nconfirmation" as UC6
+    
+usecase "View room availability" as UC1
+usecase "Book room" as UC2
+usecase "Cancel own booking" as UC3
+usecase "Block or unblock room" as UC4
+usecase "Review room usage" as UC5
+usecase "Receive confirmation" as UC6
 
     ' why: R4 says every successful booking produces a confirmation
     UC2 ..> UC6 : <<include>>

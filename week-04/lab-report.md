@@ -74,7 +74,7 @@ proves it is a problem.
 | # | Element | Problem | Rule or story | Fix |
 | --- | --- | --- | --- | --- |
 | 1 | Student → Receive confirmation | The AI connected Student directly to Receive confirmation. Confirmation is produced by the system as an outcome; the Student does not directly trigger this use case. | R4 | Removed the direct Student → Receive confirmation association. |
-| 2 | Book room → Receive confirmation and Cancel own booking → Receive confirmation | The AI used two `<<include>>` relationships without the required `' why:` comment directly above them. | R4, US-06, PlantUML convention | Added a `' why:` comment directly above each `<<include>>` relationship explaining its justification from R4 and US-06. |
+| 2 | Book room → Receive confirmation and Cancel own booking → Receive confirmation | The AI used two include relationships without the required `' why:` comment directly above them. | R4, US-06, PlantUML convention | Added a `' why:` comment directly above each include relationship explaining its justification from R4 and US-06. |
 
 ---
 
@@ -159,7 +159,7 @@ proves it is a problem.
 
 | # | Diagram | Before (AI's original) | After (your revision) | Reason |
 | --- | --- | --- | --- | --- |
-| 1 | use case | Student was directly associated with `Receive confirmation`, and the `<<include>>` links had no `' why:` comments. | Removed the direct Student → Receive confirmation association and added justification comments above both `<<include>>` links. | R4 makes confirmation a system result, and the PlantUML convention requires a reason above each include relationship. |
+| 1 | use case | Student was directly associated with `Receive confirmation`, and the include relationships had no `' why:` comments. | Removed the direct Student to Receive confirmation association and added justification comments above both include relationships. | R4 makes confirmation a system result, and the PlantUML convention requires a reason above each include relationship. |
 | 2 | class | `cancelBooking()`, `reviewUsage()`, and `hasValidDuration()` did not fully express US-03, US-05, and R1. | Changed them to `cancelOwnBooking()`, `reviewRoomUsage(startTime, endTime)`, and `hasValidTimeRange(now)`. | The revised operations now express ownership, the usage period, and the full R1 time requirement. |
 | 3 | activity | The overlap decision did not explicitly say that the active booking must be for the same room, and rule IDs were not fully visible. | Added R1/R3/R2 to decision labels, added “for the selected room” to the overlap decision, and marked confirmation as R4. | Improves direct traceability to R1–R4 and makes the R2 condition exact. |
 ---
@@ -170,17 +170,54 @@ Paste the complete output of `python tests/check_models.py`, then explain **ever
 keeping**. The same IDs go in `submission.yml` under `checker.kept_fails`. A FAIL you report and explain costs you nothing. One you hide costs the whole criterion.
 
 ```text
-<paste the full output>
+Week 04 structural check - shape only, never quality
+
+UC1  PASS  Student and Administrator declared
+UC2  PASS  named system boundary: "Smart Campus Study Room Booking System"
+UC3  PASS  all actors declared outside the boundary
+UC4  PASS  all scenario goals present (6 use cases)
+UC5  PASS  no actor is associated with a confirmation use case
+UC6  PASS  actor responsibilities match the scenario
+UC7  PASS  use cases are goals, not screens or components
+UC8  PASS  every include / extend / generalization carries a ' why: comment (or there are none)
+UC9  PASS  revised diagram differs from the AI's original
+CL1  PASS  Student, Room and Booking present
+CL2  PASS  Booking is associated with Student and with Room
+CL3  PASS  every association has multiplicities at both ends
+CL4  PASS  1 student / 1 room per booking, 0..* bookings per student and per room
+CL5  PASS  every inheritance / composition / aggregation carries a ' why: comment (or there are none)
+CL6  PASS  only domain concepts in the class diagram
+CL7  PASS  attributes needed by R1-R3 are present
+CL8  PASS  a note states R2 (no overlapping active bookings)
+AC1  PASS  initial and final nodes present
+AC2  PASS  separate decisions check R1, R3 and R2 (3 decisions)
+AC3  PASS  every branch has a labelled guard
+AC4  PASS  no parallel paths
+AC5  PASS  confirmation on success, rejection on failure
+AC6  PASS  creation comes after all rule checks
+FI1  PASS  the AI's original output is kept for every diagram
+FI2  PASS  a rendered image for every diagram
+LR1  PASS  §1 setup filled (tool and model recorded)
+LR2  PASS  5 prompts pasted in §2
+LR3  PASS  2 use-case findings in §3
+LR4  PASS  §4 relationships read both ways, 4 assumption(s) declared
+LR5  PASS  4 behaviour-diagram findings in §5
+LR6  PASS  4 critique issues with a verdict
+LR7  PASS  3 change-log rows covering all three diagrams
+CS1  PASS  6 approved stories
+CS2  PASS  §7 traces R1-R4 into the diagrams
+CS3  PASS  every use case traces to an approved story
+
+SUMMARY pass=35 fail=0 error=0
+A FAIL you report and explain in lab-report.md §9 costs you nothing. One you hide costs the criterion.
 ```
 
-**FAILs I am keeping, and why:** <one line per check ID, or "none">
+**FAILs I am keeping, and why:** none
 
 ---
 
 ## 10. Conclusion (120–180 words)
 
-<Which diagram did the AI get most wrong, and what exactly was wrong? Which error would have
-reached the code if nobody had reviewed it? What did the critique find that you missed — and what
-did it claim that was false? Be specific: "the AI got the multiplicities wrong" is worth nothing;
-"the AI put 1..* on the Booking end, which says every room must already have a booking" is worth
-everything.>
+The AI got the class diagram most wrong. Its original model used `Booking "1" -- "0..*" Confirmation`, which allowed a successful booking to have no confirmation even though R4 requires one. It also used `cancelBooking()` without expressing that a Student may cancel only their own booking, and `reviewUsage()` without the period required by US-05. The ownership problem could have reached the code: an implementation based only on `cancelBooking(booking)` might forget to verify that the booking belongs to the current Student.
+
+The later AI critique found one issue I had missed in the activity diagram: the R2 decision checked for an active overlapping booking but did not explicitly say “for the selected room.” I accepted that correction. However, I rejected the critique claim that `Receive confirmation` and `Send confirmation` must use identical wording. The use-case diagram describes the Student's goal, while the activity diagram describes the system action, so the different wording is intentional.
