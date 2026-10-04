@@ -1,0 +1,40 @@
+@startuml
+
+title Smart Campus - Book Room Activity Diagram
+
+start
+
+:Select room and time slot;
+:Submit booking request;
+
+if (Is the time range valid?) then ([valid])
+else ([invalid])
+    :Reject booking\nInvalid time range;
+    stop
+endif
+
+if (Is the room blocked?) then ([yes])
+    :Reject booking\nRoom is blocked;
+    stop
+else ([no])
+endif
+
+if (Does the request overlap\nan active booking?) then ([yes])
+    :Reject booking\nTime slot overlaps;
+    stop
+else ([no])
+endif
+
+:Create booking;
+:Send confirmation;
+
+stop
+
+note right
+R1:
+- Start must be in the future
+- Duration > 0
+- Duration <= 2 hours
+end note
+
+@enduml
