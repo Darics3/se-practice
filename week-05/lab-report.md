@@ -25,40 +25,106 @@
 **The assistant's plan, pasted unedited:**
 
 ```text
-(paste here)
-```
 
+A short, safe implementation plan would be:
+
+1. **Validate the requested interval and future start — AC1.**
+   Check that `start` and `end` satisfy `0 <= start < end <= 1440`, then check that `start > now`. If any part fails, return `False`.
+2. **Check duration — AC2.**
+   Compute the requested duration as `end - start`. If it is greater than `120` minutes, return `False`.
+3. **Check room status — AC3.**
+   If `blocked` is `True`, return `False`.
+4. **Check every active existing booking — AC4.**
+   Treat all intervals as **start-inclusive, end-exclusive**. The requested interval must not intersect any `(existing_start, existing_end)` interval. Touching is allowed, so a request ending exactly when an existing booking starts is valid, and a request starting exactly when an existing booking ends is valid.
+5. **Final decision — AC5.**
+   If all checks pass, return `True`. Otherwise return `False`. Do not modify `existing`, its tuples, or any other input.
+
+### Assumptions
+
+Based only on the supplied contract:
+
+- `now` is already valid and is between `0` and `1439`.
+- `blocked` is already a Boolean.
+- Every tuple in `existing` is already a valid active booking for the selected room.
+- All times refer to the **same date** and are integer minutes after midnight.
+- `1440` is allowed for `end`, representing the end of the day.
+- `start` must be **strictly greater than** `now`; `start == now` is not allowed.
+- Duration of exactly `120` minutes is allowed.
+- `existing` may be empty.
+- The function only makes a decision; it does not save a booking or send confirmation.
+
+### Boundary cases worth testing
+
+| Case                           | Example                                   | Expected                         |
+| ------------------------------ | ----------------------------------------- | -------------------------------- |
+| Earliest possible valid start  | `now=0, start=1, end=2`                   | `True` if otherwise clear        |
+| Start exactly now              | `now=600, start=600, end=660`             | `False`                          |
+| Start one minute after now     | `now=600, start=601, end=660`             | `True` if otherwise clear        |
+| Negative start                 | `start=-1, end=60`                        | `False`                          |
+| Start equals end               | `start=600, end=600`                      | `False`                          |
+| Start after end                | `start=700, end=600`                      | `False`                          |
+| End exactly 1440               | `start=1380, end=1440`                    | Valid range                      |
+| End above 1440                 | `start=1380, end=1441`                    | `False`                          |
+| Duration exactly 120           | `start=600, end=720`                      | Valid duration                   |
+| Duration 121                   | `start=600, end=721`                      | `False`                          |
+| Blocked room                   | `blocked=True`                            | `False`                          |
+| No existing bookings           | `existing=[]`                             | `True` if AC1–AC3 pass           |
+| Ends when booking starts       | request `(600,660)`, existing `(660,720)` | `True`                           |
+| Starts when booking ends       | request `(720,780)`, existing `(660,720)` | `True`                           |
+| One-minute overlap             | request `(600,661)`, existing `(660,720)` | `False`                          |
+| Request inside existing        | request `(630,660)`, existing `(600,700)` | `False`                          |
+| Existing inside request        | request `(600,720)`, existing `(630,660)` | `False`                          |
+| Same interval                  | request `(600,720)`, existing `(600,720)` | `False`                          |
+| Multiple bookings, one overlap | only one tuple overlaps                   | `False`                          |
+| Input mutation check           | save copy of `existing`, call function    | `existing` must remain identical |
+
+The most important bug-catching cases are the **touching endpoints**, **exactly 120 minutes vs. 121 minutes**, and **`start == now` vs. `start == now + 1`**.
+
+```
 **What the plan invented or changed.** One row for every rule in the plan that is not in the
 contract or in AC1–AC5, or that says something different from them. If you found none, write one
 row saying which lines of the plan you checked against which AC.
 
 | # | What the plan said | What the contract or the AC says | What I did |
 | --- | --- | --- | --- |
-| 1 | | | |
+| 1 | The plan checks the valid time range and future start, duration, blocked status, overlap, and final decision without modifying inputs. | These checks match AC1, AC2, AC3, AC4, AC5 and the contract requirement to keep inputs unchanged. | Kept the plan. I found no invented rule. |
 
 **Boundary cases the assistant suggested that I kept as tests:**
+- Start equals end — AC1.
+- Start after end — AC1.
+- End exactly 1440 — AC1.
+- End above 1440 — AC1.
+- Empty `existing` list — contract / AC4.
+- Multiple existing bookings with one overlap — AC4.
+- Request inside an existing booking — AC4.
+- Existing booking inside the request — AC4.
+- Same interval as an existing booking — AC4.
+- Input mutation check — AC5 / contract.
 
--
 
 ---
 
+
+
 ## 3. Task 2 — the first version (v1), read before it was run
 
-v1 is saved as `code/original/booking_v1.<ext>`, exactly as the assistant returned it: yes / no
+v1 is saved as `code/original/booking_v1.py`, exactly as the assistant returned it: yes
 
 **AC map.** One row per condition in v1. Quote the line.
 
 | # | Line in v1 | AC it implements | Correct as written? If not, why |
 | --- | --- | --- | --- |
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
+| 1 | `if not (0 <= start < end <= 1440):` | AC1 | Yes. It rejects invalid day bounds, zero-length intervals and reversed intervals. |
+| 2 | `if start <= now:` | AC1 | Yes. AC1 requires `start > now`, so equality and past starts must be rejected. |
+| 3 | `if end - start > 120:` | AC2 | Yes. Exactly 120 minutes is allowed; only durations greater than 120 are rejected. |
+| 4 | `if blocked:` | AC3 | Yes. A blocked room must not accept a new booking. |
+| 5 | `if start < existing_end and end > existing_start:` | AC4 | Yes. This detects overlap for half-open intervals and still allows touching endpoints. |
+| 6 | `return True` | AC5 | Yes. It is reached only after AC1–AC4 have all passed. |
 
 **Anything in v1 that no AC asks for** (extra validation, a buffer between bookings, logging,
 saving the booking, a different return type):
 
--
+- None.
 
 ---
 
