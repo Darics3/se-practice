@@ -82,6 +82,8 @@ class BookingTests(unittest.TestCase):
         result = can_book(600, 660, 540, False, [(600, 660)])
         self.assertIs(result, False)
 
-
+    def test_earliest_future_minute_is_allowed(self):
+        result = can_book(1, 2, 0, False, [])
+        self.assertIs(result, True)
 if __name__ == "__main__":
     unittest.main()

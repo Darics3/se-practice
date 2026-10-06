@@ -152,6 +152,7 @@ Base input for every row unless the row says otherwise: `now=540, blocked=False,
 | 15 | `test_request_inside_existing_is_rejected` | `(615, 645)` | none | False | AC4 | PASS | pending |
 | 16 | `test_request_contains_existing_is_rejected` | `(570, 690)` | none | False | AC4 | PASS | pending |
 | 17 | `test_identical_interval_is_rejected` | `(600, 660)` | none | False | AC4 | PASS | pending |
+| 18 | `test_earliest_future_minute_is_allowed` | `(1, 2)` | `now=0, existing=[]` | True | AC1 | PASS | pending |
 
 ---
 
@@ -163,7 +164,7 @@ cause column says why no change was needed.
 
 | # | Input (the full call) | Expected | Actual | Cause (quote the line) | Fix | Who proposed the fix |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | | | | | | |
+| 1 | `can_book(1, 2, 0, False, [])` | True | True | No defect was found. The line `if start <= now:` correctly allows `start=1` when `now=0`, and the other AC1–AC4 checks also pass. | No implementation change needed; added the edge-case test only. | N/A — no fix was needed |
 
 **The debug prompt I sent, and the assistant's answer** (leave the block empty if you did not use it):
 
