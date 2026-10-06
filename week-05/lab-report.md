@@ -135,24 +135,24 @@ Base input for every row unless the row says otherwise: `now=540, blocked=False,
 
 | # | Test name | Request (start, end) | What differs from the base input | Expected | AC | Result on v1 | Result on final |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `test_touching_end_is_allowed` | `(660, 720)` | none | True | AC4 | PASS | pending |
-| 2 | `test_overlap_is_rejected` | `(630, 690)` | none | False | AC4 | PASS | pending |
-| 3 | `test_blocked_room_is_rejected` | `(660, 720)` | `blocked=True` | False | AC3 | PASS | pending |
-| 4 | `test_exactly_two_hours_is_allowed` | `(720, 840)` | none | True | AC2 | PASS | pending |
-| 5 | `test_over_two_hours_is_rejected` | `(720, 841)` | none | False | AC2 | PASS | pending |
-| 6 | `test_starting_now_is_rejected` | `(540, 570)` | none | False | AC1 | PASS | pending |
-| 7 | `test_zero_length_is_rejected` | `(700, 700)` | none | False | AC1 | PASS | pending |
-| 8 | `test_reversed_time_is_rejected` | `(720, 700)` | none | False | AC1 | PASS | pending |
-| 9 | `test_end_exactly_1440_is_allowed` | `(1380, 1440)` | `existing=[]` | True | AC1 | PASS | pending |
-| 10 | `test_end_after_1440_is_rejected` | `(1380, 1441)` | `existing=[]` | False | AC1 | PASS | pending |
-| 11 | `test_empty_existing_is_allowed` | `(660, 720)` | `existing=[]` | True | AC4 | PASS | pending |
-| 12 | `test_multiple_existing_bookings_are_checked` | `(720, 780)` | `existing=[(600, 660), (700, 760)]` | False | AC4 | PASS | pending |
-| 13 | `test_existing_input_is_unchanged` | `(780, 840)` | `existing=[(900, 960), (600, 660), (700, 760)]` | existing unchanged | AC5 / contract | PASS | pending |
-| 14 | `test_touching_before_existing_is_allowed` | `(570, 600)` | none | True | AC4 | PASS | pending |
-| 15 | `test_request_inside_existing_is_rejected` | `(615, 645)` | none | False | AC4 | PASS | pending |
-| 16 | `test_request_contains_existing_is_rejected` | `(570, 690)` | none | False | AC4 | PASS | pending |
-| 17 | `test_identical_interval_is_rejected` | `(600, 660)` | none | False | AC4 | PASS | pending |
-| 18 | `test_earliest_future_minute_is_allowed` | `(1, 2)` | `now=0, existing=[]` | True | AC1 | PASS | pending |
+| 1 | `test_touching_end_is_allowed` | `(660, 720)` | none | True | AC4 | PASS | PASS |
+| 2 | `test_overlap_is_rejected` | `(630, 690)` | none | False | AC4 | PASS | PASS |
+| 3 | `test_blocked_room_is_rejected` | `(660, 720)` | `blocked=True` | False | AC3 | PASS | PASS |
+| 4 | `test_exactly_two_hours_is_allowed` | `(720, 840)` | none | True | AC2 | PASS | PASS |
+| 5 | `test_over_two_hours_is_rejected` | `(720, 841)` | none | False | AC2 | PASS | PASS |
+| 6 | `test_starting_now_is_rejected` | `(540, 570)` | none | False | AC1 | PASS | PASS |
+| 7 | `test_zero_length_is_rejected` | `(700, 700)` | none | False | AC1 | PASS | PASS |
+| 8 | `test_reversed_time_is_rejected` | `(720, 700)` | none | False | AC1 | PASS | PASS |
+| 9 | `test_end_exactly_1440_is_allowed` | `(1380, 1440)` | `existing=[]` | True | AC1 | PASS | PASS |
+| 10 | `test_end_after_1440_is_rejected` | `(1380, 1441)` | `existing=[]` | False | AC1 | PASS | PASS |
+| 11 | `test_empty_existing_is_allowed` | `(660, 720)` | `existing=[]` | True | AC4 | PASS | PASS |
+| 12 | `test_multiple_existing_bookings_are_checked` | `(720, 780)` | `existing=[(600, 660), (700, 760)]` | False | AC4 | PASS | PASS |
+| 13 | `test_existing_input_is_unchanged` | `(780, 840)` | `existing=[(900, 960), (600, 660), (700, 760)]` | existing unchanged | AC5 / contract | PASS | PASS |
+| 14 | `test_touching_before_existing_is_allowed` | `(570, 600)` | none | True | AC4 | PASS | PASS |
+| 15 | `test_request_inside_existing_is_rejected` | `(615, 645)` | none | False | AC4 | PASS | PASS |
+| 16 | `test_request_contains_existing_is_rejected` | `(570, 690)` | none | False | AC4 | PASS | PASS |
+| 17 | `test_identical_interval_is_rejected` | `(600, 660)` | none | False | AC4 | PASS | PASS |
+| 18 | `test_earliest_future_minute_is_allowed` | `(1, 2)` | `now=0, existing=[]` | True | AC1 | PASS | PASS |
 
 ---
 
@@ -178,13 +178,28 @@ cause column says why no change was needed.
 **The assistant's critique, pasted unedited:**
 
 ```text
-(paste here)
+I found **one concrete contract issue**. The rest of the implementation matches AC1–AC5.
+
+1. **Integer-minute requirement is not enforced.**
+   Quote:
+   > `if not (0 <= start < end <= 1440):`
+   **Concerns:** Function contract — **“Times are integer minutes after midnight on one date.”**
+
+   This checks only the numerical range and ordering. For example, `start=600.5, end=660.5` could pass even though the contract says times are integer minutes. Similarly, because Python treats `bool` as a subclass of `int`, values such as `start=True` could potentially behave numerically.
+
+No other concrete issues against the supplied rules:
+
+- `start > now` correctly implements **AC1**.
+- `end - start > 120` correctly implements **AC2**, including allowing exactly 120 minutes.
+- `if blocked:` correctly implements **AC3**, given the contract says `blocked` is Boolean.
+- `start < existing_end and end > existing_start` correctly implements **AC4** and permits touching endpoints.
+- `existing` is only iterated over and is not altered, satisfying **AC5 / the function contract**.
 ```
 
 | # | Suggestion | accept / reject | Reason — cite the AC or the contract line | Suite after the change |
 | --- | --- | --- | --- | --- |
-| 1 | | accept / reject | | |
-| 2 | | accept / reject | | |
+| 1 | Add validation that `start` and `end` are integers. | reject | The contract states that times are integer minutes, so non-integer values are outside the specified input domain. The checker guidance also says a non-integer-time test is not counted for the mutation checks. | No change made; suite remained 18 tests, all OK. |
+| 2 | Keep the overlap condition `start < existing_end and end > existing_start` because it allows touching endpoints. | accept | AC4 says active bookings must not overlap and touching endpoints are allowed. The current condition correctly implements half-open intervals. | No implementation change was needed; 18 tests remained OK. |
 
 ---
 
@@ -192,7 +207,7 @@ cause column says why no change was needed.
 
 | # | What changed (the line, before → after) | Why | Evidence: the test or check that moved |
 | --- | --- | --- | --- |
-| 1 | | | |
+| 1 | No implementation line changed; final `booking.py` remains identical to v1. | v1 passed all 18 tests and F1–F10, and the critique did not identify a justified code change within AC1–AC5. | `python -m unittest -v`: 18 tests passed; checker F1–F10 passed. |
 
 ---
 
