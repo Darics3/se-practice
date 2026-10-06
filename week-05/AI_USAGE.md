@@ -6,20 +6,20 @@ including anything an AI tool produced.
 
 | Tool | Exact model / plan | Used for | Which files it touched |
 | --- | --- | --- | --- |
-| | | the plan (Task 1) | |
-| | | the first version, v1 (Task 2) | |
-| | | | |
+| ChatGPT | GPT-5.6 Sol | the plan (Task 1) | `lab-report.md` §2 |
+| ChatGPT | GPT-5.6 Sol | the first version, v1 (Task 2) | `code/original/booking_v1.py`, `code/booking.py` |
+| ChatGPT | GPT-5.6 Sol | assistance with test design and boundary cases | `code/test_booking.py`, `lab-report.md` §4 |
+| ChatGPT | GPT-5.6 Sol | focused critique of the final implementation | `lab-report.md` §6 |
 
-**The assistant wrote, or helped write, my tests in `code/`:** yes / no
-<!-- Either answer is allowed. If "yes": say which tests, and how you checked that their EXPECTED
-     values come from AC1–AC5 and not from what the generated code happens to return. -->
+**The assistant wrote, or helped write, my tests in `code/`:** yes  
+ChatGPT helped propose the six required table-case tests, additional boundary and overlap tests, and the final edge-case test. I checked each expected result against AC1–AC5 before relying on it. The final suite passed all 18 tests, and the mutation checker passed M1–M10.
 
-**`code/original/` holds the assistant's first answer exactly as returned:** yes / no
+**`code/original/` holds the assistant's first answer exactly as returned:** yes
 
-**Everything I submitted, I can explain and defend in class — including the overlap condition:** yes / no
+**Everything I submitted, I can explain and defend in class — including the overlap condition:** yes
 
-**Anything I accepted from the AI without fully understanding it:**
-<!-- Name the file and the line. An honest entry here costs far less than a blank one that turns out to be untrue. -->
+**Anything I accepted from the AI without fully understanding it:**  
+None.
 
-Signed: <your name>
-Date:
+Signed: Darkhan Izbassarov  
+Date: 2026-10-06
