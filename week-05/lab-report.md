@@ -109,6 +109,7 @@ row saying which lines of the plan you checked against which AC.
 ## 3. Task 2 — the first version (v1), read before it was run
 
 v1 is saved as `code/original/booking_v1.py`, exactly as the assistant returned it: yes
+**Before running v1, I expected:** the implementation appears consistent with AC1–AC5, so I did not expect a failure from the six starter cases. The test suite will verify this.
 
 **AC map.** One row per condition in v1. Quote the line.
 
