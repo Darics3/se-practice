@@ -135,17 +135,23 @@ Base input for every row unless the row says otherwise: `now=540, blocked=False,
 
 | # | Test name | Request (start, end) | What differs from the base input | Expected | AC | Result on v1 | Result on final |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | | | | | | | |
-| 2 | | | | | | | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
-| 5 | | | | | | | |
-| 6 | | | | | | | |
-| 7 | | | | | | | |
-| 8 | | | | | | | |
-| 9 | | | | | | | |
-| 10 | | | | | | | |
-| 11 | | | | | | | |
+| 1 | `test_touching_end_is_allowed` | `(660, 720)` | none | True | AC4 | PASS | pending |
+| 2 | `test_overlap_is_rejected` | `(630, 690)` | none | False | AC4 | PASS | pending |
+| 3 | `test_blocked_room_is_rejected` | `(660, 720)` | `blocked=True` | False | AC3 | PASS | pending |
+| 4 | `test_exactly_two_hours_is_allowed` | `(720, 840)` | none | True | AC2 | PASS | pending |
+| 5 | `test_over_two_hours_is_rejected` | `(720, 841)` | none | False | AC2 | PASS | pending |
+| 6 | `test_starting_now_is_rejected` | `(540, 570)` | none | False | AC1 | PASS | pending |
+| 7 | `test_zero_length_is_rejected` | `(700, 700)` | none | False | AC1 | PASS | pending |
+| 8 | `test_reversed_time_is_rejected` | `(720, 700)` | none | False | AC1 | PASS | pending |
+| 9 | `test_end_exactly_1440_is_allowed` | `(1380, 1440)` | `existing=[]` | True | AC1 | PASS | pending |
+| 10 | `test_end_after_1440_is_rejected` | `(1380, 1441)` | `existing=[]` | False | AC1 | PASS | pending |
+| 11 | `test_empty_existing_is_allowed` | `(660, 720)` | `existing=[]` | True | AC4 | PASS | pending |
+| 12 | `test_multiple_existing_bookings_are_checked` | `(720, 780)` | `existing=[(600, 660), (700, 760)]` | False | AC4 | PASS | pending |
+| 13 | `test_existing_input_is_unchanged` | `(780, 840)` | `existing=[(900, 960), (600, 660), (700, 760)]` | existing unchanged | AC5 / contract | PASS | pending |
+| 14 | `test_touching_before_existing_is_allowed` | `(570, 600)` | none | True | AC4 | PASS | pending |
+| 15 | `test_request_inside_existing_is_rejected` | `(615, 645)` | none | False | AC4 | PASS | pending |
+| 16 | `test_request_contains_existing_is_rejected` | `(570, 690)` | none | False | AC4 | PASS | pending |
+| 17 | `test_identical_interval_is_rejected` | `(600, 660)` | none | False | AC4 | PASS | pending |
 
 ---
 
