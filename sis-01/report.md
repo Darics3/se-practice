@@ -51,20 +51,28 @@ There is also a trade-off between simplicity and operational sophistication. Bec
      checks and your two substantive revisions, each with a reason. Point at the rows of the
      tables in section 9 ("verification row 2", "change-log row 1"). -->
 
-(write here)
+Prompt B identified eleven concerns. I accepted most of them because they exposed places where the draft relied on assumptions or did not connect delivery activities closely enough to the scenario. I accepted concern 1 because laboratory staff roles are not defined, and concern 4 because double-booking prevention needs an enforced conflict rule as well as tests. I also accepted concern 5 because cancellation and detailed booking rules were not given, concern 6 because data preservation and uninterrupted availability are different requirements, and concern 8 because operational documentation should cover deployment, troubleshooting and recovery. Concern 9 was accepted because version control and clear structure do not by themselves prove maintainability. Concern 10 was accepted because the draft had no evidence that zero-downtime deployment is necessarily expensive, and concern 11 was accepted because customer acceptance needs agreed criteria and evidence.
+
+I qualified concern 2 because the database was already labelled as an assumption, although the final analysis now uses storage-neutral wording. I accepted concern 3 after checking ISTQB: verification row 1 supports the point that testing provides evidence but cannot prove the absence of all defects. I rejected concern 7 as stated because the original draft did not say backups alone were sufficient; it already mentioned recovery procedures. However, I accepted the narrower recommendation to test restoration. Verification row 2 supports that change using NIST guidance.
+
+These checks led to two substantive revisions. Change-log row 1 adds an explicit booking-conflict rule and concurrency testing while limiting what test results can prove. Change-log row 2 replaces general backup advice with tested restoration and post-update data verification. Both changes make the final analysis more closely tied to the system’s double-booking and data-loss risks.
 
 ## 4. Conclusion
 
 <!-- 100–150 words. Your recommendation for the scenario and its main limitation. -->
 
-(write here)
+The university should treat professional delivery as a combination of working software, verified behaviour, clear documentation, safe deployment, recovery planning, and maintainable handover materials. For this equipment booking system, the highest priorities should be preventing double bookings and protecting existing reservation data during updates. These priorities justify conflict checking, concurrency testing, backup restoration testing, and operational documentation that another IT team member can follow. The first release should remain simple enough for a small university IT team to support, while avoiding unsupported assumptions about staff roles, storage technology, or deployment cost. The main limitation is that several requirements are still undefined, including reservation rules, acceptable downtime, staff permissions, and recovery expectations. These must be agreed with the university before the final delivery process can be considered complete.
 
 ## 5. Reflection
 
 <!-- 150–200 words. NOT part of the main total. Written by you, not by the assistant:
      what helped, what you changed, what you learned. Specific beats flattering. -->
 
-(write here)
+This task helped me understand that professional software delivery is not only about making the program work. At first, I mostly focused on testing, documentation and deployment, but after Prompt B I noticed that some of my ideas were too general or based on assumptions. For example, I assumed that the system would use a database and that zero-downtime deployment would be expensive, even though the scenario did not give this information.
+
+The most useful part was checking real sources. From the ISTQB syllabus, I learned that testing can show defects but cannot prove that the software has no defects at all. From the NIST document, I learned that backups should not only be created but also tested to make sure the data can actually be restored.
+
+I also learned that AI feedback should not be accepted automatically. I disagreed with part of Concern 7 because the original draft already mentioned recovery procedures. Next time, I would define the scenario requirements more clearly before asking AI to generate a draft.
 
 ## 6. References
 
