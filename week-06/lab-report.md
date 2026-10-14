@@ -43,17 +43,24 @@ Build a small responsive Smart Campus Room Availability Checker. Requirements: A
 ## 3. Task 2 — prototype v1
 
 v1 export saved in `original/` and screenshot saved as `evidence/v1.png` **before** any cleanup
-prompt: yes / no
-
+prompt: yes 
 **Bolt's list of the files/components it created, pasted unedited:**
 
 ```text
-(paste here)
+src/types.ts — Type definitions for rooms, bookings, and check results
+src/sampleData.ts — Fictional sample rooms and bookings
+src/bookingLogic.ts — Core validation logic (all acceptance criteria)
+src/App.tsx — Full UI: room selector, time inputs, result panel, and visual timeline
 ```
 
 **What v1 does — one line per thing that works, or visibly does not:**
 
--
+- The page loads successfully and shows a working Smart Campus Room Availability Checker.
+- It provides a room selector and Start Time / End Time inputs.
+- It shows a current-time reference automatically and provides an "Update now" control; there is no visible input for entering an arbitrary current time.
+- It provides Check Availability and Reset buttons.
+- It shows booking rules and a Room Schedule area for the selected room.
+- The page states that the sample data is fictional and that bookings are not saved or modified.
 
 **Repair prompt** (only if the first build did not run — the deck allows one, then the result is
 v1). Leave empty if you did not need it:
