@@ -79,15 +79,15 @@ no way to set up the case). Save each final run as `evidence/final-T<n>.png`.
 
 | # | Case | What you set up and request | Expected | AC | Result on v1 | Result on final | Final screenshot |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | Touching | 11:00–12:00 | Available | AC4 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T1.png |
-| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T2.png |
-| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T3.png |
-| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T4.png |
-| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T5.png |
-| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T6.png |
-| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T7.png |
-| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T8.png |
-| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Available / Unavailable / Not testable | Available / Unavailable / Not testable | final-T9.png |
+| T1 | Touching | 11:00–12:00 | Available | AC4 | Not testable | Available / Unavailable / Not testable | final-T1.png |
+| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Not testable | Available / Unavailable / Not testable | final-T2.png |
+| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Not testable | Available / Unavailable / Not testable | final-T3.png |
+| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Not testable | Available / Unavailable / Not testable | final-T4.png |
+| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Not testable | Available / Unavailable / Not testable | final-T5.png |
+| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Not testable | Available / Unavailable / Not testable | final-T6.png |
+| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Not testable | Available / Unavailable / Not testable | final-T7.png |
+| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Not testable | Available / Unavailable / Not testable | final-T8.png |
+| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Not testable | Available / Unavailable / Not testable | final-T9.png |
 
 ---
 
@@ -100,9 +100,8 @@ log a justified cleanup that preserves behaviour. Save a screenshot of each as
 
 | # | Issue | Evidence: steps → expected → observed | Priority | Decision |
 | --- | --- | --- | --- | --- |
-| 1 | | | High / Medium / Low | Fix / Reject / Defer |
-| 2 | | | High / Medium / Low | Fix / Reject / Defer |
-
+| 1 | The page does not let the user supply the current time required by AC1. | Steps: open the checker and try to set current time to 09:00. Expected: the page should let me supply 09:00 so the fixed cases can be tested. Observed: the page only shows the real current-time reference and an "Update now" control, so 09:00 cannot be entered. | High | Fix |
+| 2 | The blocked room is visible but cannot be selected, so AC3 cannot be tested through the page. | Steps: open the room selector and try to choose Curie Auditorium, which is marked Blocked. Expected: the room should be selectable and the checker should return Unavailable with a clear blocked-room message. Observed: the blocked option is disabled and cannot be selected. | Medium | Fix |
 ---
 
 ## 6. Task 4 — cleanup with focused prompts
