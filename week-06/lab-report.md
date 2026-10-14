@@ -209,26 +209,16 @@ the assistant, what it does and how it decides. 60 words or more.
 
 ### 9.1 Checks I am keeping as FAIL or ERROR
 
-The same IDs as `known_fails` in `submission.yml`. Write `none` if the run is clean.
-
-| Check | Why it stays |
-| --- | --- |
-| | |
-
+none
 ### 9.2 The end of the day
 
-AC1 allows `end ≤ 1440` — a booking may end at 24:00. Can a user of your final page ask for
-23:00–24:00? How — and if not, why is that acceptable or not? (This is the value you declare in
-`submission.yml` under `assumptions.end_of_day`.)
-
--
+The final page uses native HTML time inputs, so the user cannot directly enter 24:00 as an end time. The latest value that can be entered normally is 23:59. I decided to keep this limitation instead of adding special end-of-day handling because the prototype is intentionally small and the fixed test cases do not require 24:00. I will declare this limitation in `submission.yml` under `assumptions.end_of_day`.
 
 ### 9.3 Which "now"?
 
-AC1 says "after the supplied current time". What did **v1** use as the current time, and what did
-that mean for testing case T6?
+In v1, the current time came automatically from the computer clock and the user could only refresh it with the "Update now" control. This meant I could not supply the fixed current time of 09:00 required by T6, so T6 was Not testable on v1. After cleanup, the current-time field became editable, which made T6 testable and allowed the final version to reject a booking that starts exactly at the supplied current time.
 
--
+
 
 ---
 
@@ -245,3 +235,8 @@ that mean for testing case T6?
      booking data." -->
 
 <!-- Write your conclusion below this line -->
+My first prediction was wrong because v1 correctly allowed touching bookings, such as 11:00–12:00 after an existing 10:00–11:00 booking. My second prediction was right because the native time input does not directly allow 24:00. The main problems in v1 were different: I could not supply the required current time, a booking starting exactly at the current time was accepted, and a blocked room could not be selected for testing.
+
+A suggestion that would have been wrong to accept would be adding a Book button or saving checked bookings. That would broaden the scope and could break AC5, which says checking availability must not change existing booking data.
+
+The biggest lesson is that a prototype can look complete while still failing the acceptance criteria. For example, T6 looked simple, but v1 could not even set up the required 09:00 current time. The final version passed all nine cases only after focused fixes and retesting.
