@@ -77,17 +77,15 @@ the room's **only booking 10:00–11:00**. The Expected column comes from AC1–
 Write each result exactly as **Available**, **Unavailable** or **Not testable** (the page gives you
 no way to set up the case). Save each final run as `evidence/final-T<n>.png`.
 
-| # | Case | What you set up and request | Expected | AC | Result on v1 | Result on final | Final screenshot |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | Touching | 11:00–12:00 | Available | AC4 | Not testable | Available / Unavailable / Not testable | final-T1.png |
-| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Not testable | Available / Unavailable / Not testable | final-T2.png |
-| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Not testable | Available / Unavailable / Not testable | final-T3.png |
-| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Not testable | Available / Unavailable / Not testable | final-T4.png |
-| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Not testable | Available / Unavailable / Not testable | final-T5.png |
-| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Not testable | Available / Unavailable / Not testable | final-T6.png |
-| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Not testable | Available / Unavailable / Not testable | final-T7.png |
-| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Not testable | Available / Unavailable / Not testable | final-T8.png |
-| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Not testable | Available / Unavailable / Not testable | final-T9.png |
+| T1 | Touching | 11:00–12:00 | Available | AC4 | Not testable | Available | final-T1.png |
+| T2 | Overlap | 10:30–11:30 | Unavailable | AC4 | Not testable | Unavailable | final-T2.png |
+| T3 | Blocked | 11:00–12:00, room blocked | Unavailable | AC3 | Not testable | Unavailable | final-T3.png |
+| T4 | Exactly 2 hours | 12:00–14:00 | Available | AC2 | Not testable | Available | final-T4.png |
+| T5 | Over 2 hours | 12:00–14:01 | Unavailable | AC2 | Not testable | Unavailable | final-T5.png |
+| T6 | Starts now | 09:00–09:30 (current time 09:00) | Unavailable | AC1 | Not testable | Unavailable | final-T6.png |
+| T7 | Reversed times | 12:00–11:00, and the page says why | Unavailable | AC1, AC6 | Not testable | Unavailable | final-T7.png |
+| T8 | Same check twice | T1, then T1 again without reloading | Available | AC5 | Not testable | Available | final-T8.png |
+| T9 | Narrow screen | T1 at about 375 px wide | Available | AC6 | Not testable | Available | final-T9.png |
 
 ---
 
@@ -102,6 +100,7 @@ log a justified cleanup that preserves behaviour. Save a screenshot of each as
 | --- | --- | --- | --- | --- |
 | 1 | The page does not let the user supply the current time required by AC1. | Steps: open the checker and try to set current time to 09:00. Expected: the page should let me supply 09:00 so the fixed cases can be tested. Observed: the page only shows the real current-time reference and an "Update now" control, so 09:00 cannot be entered. | High | Fix |
 | 2 | The blocked room is visible but cannot be selected, so AC3 cannot be tested through the page. | Steps: open the room selector and try to choose Curie Auditorium, which is marked Blocked. Expected: the room should be selectable and the checker should return Unavailable with a clear blocked-room message. Observed: the blocked option is disabled and cannot be selected. | Medium | Fix |
+| 3 | A booking that starts exactly at the supplied current time is accepted. | Steps: set current time to 09:00, select Newton Lab, request 09:00–09:30, and check availability. Expected: Unavailable because AC1 requires the start time to be after the supplied current time. Observed: the page returns Available. | High | Fix |
 ---
 
 ## 6. Task 4 — cleanup with focused prompts
@@ -112,24 +111,68 @@ in) and Bolt's answer, unedited.
 **Functional fix prompt, as sent, and Bolt's answer:**
 
 ```text
-(paste here)
+In the current prototype, trying to set the supplied current time to 09:00 produces no editable current-time input; the page only shows the real current time and an "Update now" control, but AC1 requires the supplied current time to be used when deciding whether the start time is valid. Make the smallest change that fixes this behavior. Preserve the other acceptance criteria. Explain which file/component you changed and why.
+
+Let me read the relevant section of App.tsx to make the precise edit.
+
+Read
+src/App.tsx
+Open
+I'll replace the read-only current-time display with an editable time input so users can supply a custom current time, while keeping the "Update now" convenience.
+
+0123456789
+ actions taken
+Build passes. I changed src/App.tsx — the current-time control was a read-only label with only an "Update now" button, so you couldn't supply a custom current time like 09:00. I replaced that static display with an editable time input (bound to the same currentTime state) while keeping the one-click "Set to real now" button. The validation logic in bookingLogic.ts already used currentTime for the AC1 start-time check, so no other files needed changes — the supplied current time now flows correctly into the availability decision.
+
+Make current-time display editable
+Version 2 at Oct 15 12:57 AM
+```
+
+**Further functional fix prompt, as sent, and Bolt's answer:**
+
+```text
+In the current prototype, setting the supplied current time to 09:00 and requesting 09:00–09:30 produces Available, but AC1 requires Unavailable because the start time must be after the supplied current time. Make the smallest change that fixes this behavior. Preserve the other acceptance criteria. Explain which file/component you changed and why.
+
+The bug is in bookingLogic.ts — the AC1 check uses < (strictly less than) but "start must be after current time" means start must be strictly greater than current time, so equal should be rejected.
+
+0123456789
+ actions taken
+Build passes. I changed src/bookingLogic.ts — the AC1 boundary check used startMin < currentTime, which allowed start and current time to be equal. AC1 says start must be after the supplied current time, so I changed the comparison from < to <=. Now setting current time to 09:00 and requesting 09:00–09:30 correctly returns Unavailable, while any start time after 09:00 still passes.
+```
+
+**Further functional fix prompt, as sent, and Bolt's answer:**
+
+```text
+In the current prototype, opening the room selector and trying to select Curie Auditorium produces a disabled option that cannot be selected, but AC3 requires a request for a blocked room to be rejected as Unavailable. Make the smallest change that fixes this behavior. Preserve the other acceptance criteria. Explain which file/component you changed and why.
+
+0123456789
+ actions taken
+Build passes. I changed src/App.tsx — the room selector had disabled={r.blocked} on blocked rooms, preventing them from being selected at all. I removed that disabled attribute so Curie Auditorium can now be selected, and when you check availability the existing logic in bookingLogic.ts (AC3) returns Unavailable with the blocked-room reason. The "— Blocked" label stays in the dropdown so it's still clear which rooms are blocked.
 ```
 
 **Cleanup prompt, as sent, and Bolt's answer:**
 
 ```text
-(paste here)
-```
+Review only the current-time control in src/App.tsx for unnecessary duplication, confusing naming, or UI feedback problems. Suggest one small cleanup. Do not add features or redesign the whole application. Implement it only if it preserves AC1–AC6.
 
-Add further blocks for further prompts.
+Read
+src/App.tsx
+The one issue I see: the button label "Set to real now" is awkward and confusing — "real now" isn't a standard phrase and could make a user hesitate. Renaming it to "Reset to now" is clearer and conventional, and it's purely a text change so no acceptance criteria are affected.
+
+0123456789
+actions taken
+Build passes. The one cleanup I made: I renamed the button label from "Set to real now" to "Reset to now" in `src/App.tsx`. The old phrasing was confusing — "real now" isn't a familiar term and could make users pause. "Reset to now" is the conventional way to express "sync this field back to the actual clock," and since it's only a text change, all six acceptance criteria are unaffected.
+```
 
 **Every change or suggestion Bolt made, judged.** Accepting is a decision; so is rejecting. Cite
 the AC (or the scope) that justifies it.
 
 | # | What Bolt changed or suggested | accept / reject | Reason — cite the AC or the scope | Retest: which cases, result |
 | --- | --- | --- | --- | --- |
-| 1 | | accept / reject | | |
-| 2 | | accept / reject | | |
+| 1 | Replaced the read-only current-time display in `src/App.tsx` with an editable time input and kept a control to set the real current time. | accept | AC1 requires the availability decision to use a supplied current time, so the page must let the user provide it. | T6 became testable, but the first retest exposed another AC1 bug: 09:00–09:30 was incorrectly Available when current time was 09:00. |
+| 2 | Changed the AC1 comparison in `src/bookingLogic.ts` from `<` to `<=` so a booking cannot start exactly at the supplied current time. | accept | AC1 requires the start time to be after the supplied current time, so equality must be rejected. | T6 Unavailable; T1 Available; T2 Unavailable; T4 Available; T5 Unavailable; T7 Unavailable with explanation; T8 Available twice; T9 Available at 375 px. T3 remained Not testable at this stage. |
+| 3 | Removed `disabled={r.blocked}` from the room selector in `src/App.tsx`, allowing blocked rooms to be selected while keeping the “— Blocked” label. | accept | AC3 requires the system to reject a request when the selected room is blocked. The room therefore needs to be selectable so the AC3 behaviour can be tested through the page. | T3 retest: Unavailable with a clear blocked-room reason. Full T1–T9 regression retest later completed successfully with all expected results. |
+| 4 | Renamed the current-time button in `src/App.tsx` from `Set to real now` to `Reset to now`. | accept | AC6 requires understandable UI feedback. The new label is clearer, and the change does not alter the booking logic or broaden the prototype scope. | T1–T9 regression retest completed after the cleanup: all nine cases matched the expected results, including T9 at 375 px width. |
 
 ---
 
@@ -139,8 +182,10 @@ Two to four concrete changes, each one retested.
 
 | # | Issue | Decision | Change (file or component) | Result after retest |
 | --- | --- | --- | --- | --- |
-| 1 | | | | |
-| 2 | | | | |
+| 1 | The page did not allow the user to supply the current time required by AC1. | accept | In `src/App.tsx`, Bolt replaced the read-only current-time display with an editable time input and kept a button to restore the real current time. | T6 became testable. The retest exposed a second AC1 issue where a booking starting exactly at the current time was still accepted. |
+| 2 | A booking starting exactly at the supplied current time was incorrectly accepted. | accept | In `src/bookingLogic.ts`, Bolt changed the AC1 boundary comparison from `<` to `<=` so `start == current time` is rejected. | T6 returned Unavailable with the message that the start time must be after the current time. Regression tests T1, T2, T4, T5, T7, T8 and T9 also behaved as expected. |
+| 3 | The blocked Curie Auditorium could not be selected, so AC3 could not be tested through the page. | accept | In `src/App.tsx`, Bolt removed the disabled state from blocked room options while keeping the “— Blocked” label. | T3 returned Unavailable with a clear blocked-room reason. The final regression run later showed all T1–T9 matching their expected results. |
+| 4 | The label `Set to real now` was confusing. | accept | In `src/App.tsx`, Bolt renamed the button to `Reset to now`. | Full final regression test T1–T9 passed, including T9 at about 375 px width. |
 
 ---
 
@@ -152,7 +197,11 @@ the assistant, what it does and how it decides. 60 words or more.
 
 **File:** `(write here, e.g. src/App.tsx)`
 
-<!-- Write your explanation below this line -->
+## 8. One generated component, in my own words
+
+**File:** `src/App.tsx`
+
+`src/App.tsx` controls the main page of the room availability checker. It stores the selected room, start time, end time, current time, and the result shown to the user. When the user presses Check Availability, the component converts the entered times into minutes and sends them together with the selected room and its bookings to the availability checking function. It also lets the user manually change the supplied current time, which is needed for AC1. The component displays either Available or Unavailable and shows a reason when the request is rejected. It also contains the room selector, booking schedule, buttons, and responsive layout used for AC6.
 
 ---
 
