@@ -2,3 +2,73 @@
 ' The file is classes.puml (plural), not class.puml as in Week 04.
 ' Start from the AI's original in models/original/classes.puml, apply your accepted review
 ' decisions, then render it to models/img/classes.png (or .svg). README section 6.
+
+@startuml
+title Course Registration - Domain Class Diagram
+
+skinparam classAttributeIconSize 0
+hide empty methods
+
+class Student {
+  +studentId: String
+  +name: String
+}
+
+class Course {
+  +courseCode: String
+  +title: String
+}
+
+class CourseOffering {
+  +offeringId: String
+  +semester: String
+  +capacity: Integer
+  +/enrollmentCount: Integer
+  +/availablePlaces: Integer
+}
+
+class Enrollment {
+  +enrollmentId: String
+}
+
+Course "1" -- "0..*" CourseOffering : has >
+Student "1" -- "0..*" Enrollment : holds >
+CourseOffering "1" -- "0..*" Enrollment : receives >
+
+note right of CourseOffering
+R1, R2:
+capacity > 0
+capacity is a whole number
+
+/enrollmentCount =
+number of linked Enrollments
+
+/availablePlaces =
+capacity - enrollmentCount
+
+0 <= enrollmentCount <= capacity
+end note
+
+note bottom of Enrollment
+R3:
+Unique (Student, CourseOffering)
+
+Each Enrollment links exactly
+one Student to exactly
+one CourseOffering.
+end note
+
+note bottom of Student
+Student is already signed in.
+Authentication is out of scope.
+end note
+
+note bottom of Course
+Course describes a subject.
+
+CourseOffering represents
+one scheduled section
+in one semester.
+end note
+
+@enduml
