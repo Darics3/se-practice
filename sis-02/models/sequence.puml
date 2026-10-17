@@ -1,0 +1,84 @@
+' SIS #02 — your FINAL sequence diagram goes here, as PlantUML (@startuml … @enduml).
+' Start from the AI's original in models/original/sequence.puml, apply your accepted review
+' decisions, then render it to models/img/sequence.png (or .svg). README section 5.
+
+@startuml
+title Course Registration - Sequence Diagram
+
+autonumber
+
+actor Student
+boundary "Catalog / Registration UI" as UI
+control "Registration Service" as Service
+database "Enrollment Store" as Store
+
+== Browse Offerings (US-01) ==
+
+Student -> UI : View catalog(semester)
+UI -> Service : getOfferings(semester)
+Service -> Store : Find offerings and enrollment counts(semester)
+Store --> Service : Courses, offerings, counts, capacities
+Service -> Service : Calculate available places\n= capacity - enrollment count
+Service --> UI : Code, title, offering, available places
+UI --> Student : Display semester catalog
+
+note over UI, Store
+AC-01, AC-02 (R1)
+Catalog browsing does not reserve places
+or create an Enrollment.
+end note
+
+== Request Registration (US-02 / US-03) ==
+
+Student -> UI : Register(selectedOffering)
+UI -> Service : register(studentId, offeringId)
+
+group Atomic registration operation
+    note over Service, Store
+    AC-03 to AC-06 (R2-R5)
+    Final duplicate and capacity checks,
+    together with Enrollment creation,
+    form one atomic operation.
+    Competing requests cannot take
+    the same last place.
+    end note
+
+    Service -> Store : Begin atomic operation
+    Service -> Store : Check existing Enrollment\n(studentId, offeringId)
+    Store --> Service : Duplicate exists?
+
+    Service -> Store : Check current enrollment count\nand offering capacity
+    Store --> Service : Current count and capacity
+
+    alt already enrolled
+        Service -> Store : Complete without changes
+        Service --> UI : Reject "already enrolled"
+        UI --> Student : Show "already enrolled"
+
+    else course full
+        Service -> Store : Complete without changes
+        Service --> UI : Reject "course full"
+        UI --> Student : Show "course full"
+
+    else not enrolled and places left
+        Service -> Store : Create exactly one Enrollment\n(studentId, offeringId)
+        Store --> Service : Enrollment created
+        Service -> Store : Commit atomic operation
+        Service --> UI : Registration confirmation\nand updated availability
+        UI --> Student : Display confirmation
+    end
+end
+
+note over Service, Store
+AC-04 (R2, R4, R5):
+If two students compete for one last place,
+the atomic operation allows exactly
+one successful Enrollment.
+The other receives "course full".
+Final enrollment count never exceeds capacity.
+
+Enrollment count and available places
+are derived from linked Enrollments.
+end note
+
+@enduml
