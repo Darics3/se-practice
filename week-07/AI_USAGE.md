@@ -6,25 +6,27 @@ including anything an AI tool produced.
 
 | Tool | Exact model / plan | Used for | Which files it touched |
 | --- | --- | --- | --- |
-| | | the first test suite (Task 3) | |
-| | | the improvement prompt (Task 5) | |
-| | | | |
+| ChatGPT | GPT-5.6 Sol / ChatGPT Plus | the first test suite (Task 3) | `suites/first/booking.test.ts`, `app/src/booking.test.ts` |
+| ChatGPT | GPT-5.6 Sol / ChatGPT Plus | the improvement prompt, test review and failure diagnosis (Task 5) | `app/src/booking.test.ts`|
+| ChatGPT | GPT-5.6 Sol / ChatGPT Plus | extracting `canBook`, explaining checker failures, and helping with report wording | `app/src/booking.ts`, `app/src/App.tsx` |
 
-**I used an assistant to extract `canBook` (Task 1), or to fix a defect in it:** yes / no
-<!-- If "yes": which change, in which file, and how you checked that the behaviour did not change. -->
+**I used an assistant to extract `canBook` (Task 1), or to fix a defect in it:** yes
 
-**I used another assistant as well (to explain a failure, to draft text in lab-report.md, …):** yes / no
-<!-- If "yes": which one, the exact model, and for which section. -->
+ChatGPT helped extract the booking decision into `app/src/booking.ts` and update `app/src/App.tsx` to call `canBook`. I checked that the behaviour did not intentionally change by running the application, checking the booking result in the UI, and later running the final 17-test suite.
 
-**`suites/first/` holds the assistant's first test file exactly as it generated it:** yes / no
+**I used another assistant as well (to explain a failure, to draft text in lab-report.md, …):** no
 
-**Every terminal output in lab-report.md was pasted from a real run, unedited:** yes / no
+I used ChatGPT throughout the work rather than a second assistant.
 
-**I can explain every test in my final suite — its input, its expected result and the AC behind
-it — without the assistant:** yes / no
+**`suites/first/` holds the assistant's first test file exactly as it generated it:** yes
+
+**Every terminal output in lab-report.md was pasted from a real run, unedited:** yes
+
+**I can explain every test in my final suite — its input, its expected result and the AC behind it — without the assistant:** yes
 
 **Anything I accepted from the AI without fully understanding it:**
-<!-- Name the file and the part. An honest entry here costs far less than a blank one that turns out to be untrue. -->
 
-Signed: <your name>
-Date:
+None. I reviewed the final tests against AC1–AC6 and the test plan, ran the suite myself, and checked the deliberate mutants and UI cases.
+
+Signed: Darkhan Izbasarov  
+Date: 2026-11-06
