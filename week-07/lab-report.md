@@ -1,4 +1,4 @@
-# Week 07 — Lab report
+﻿# Week 07 — Lab report
 
 **Name:** Darkhan Izbassarov 
 **Group:** Monday 16:00-19:00
@@ -26,7 +26,6 @@ grader find your answers by them. You can add rows to any table, but never remov
 ## 2. Task 1 — baseline and the booking function
 
 **Before editing:** where did the booking decision live in the project you started from?
-
 
 | | |
 | --- | --- |
@@ -78,7 +77,7 @@ five columns.
 **The prompt exactly as I sent it.** Use the deck's prompt with `[our test framework]` replaced by
 `Vitest`, followed by the case table from section 3:
 
-````text
+```text
 Generate tests for the existing booking function using Vitest. Use AC1–AC6 and the reviewed case table below.
 
 Import the real function used by the page. Keep its code unchanged. Use fixed time and fresh fixtures. Assert exact decisions and unchanged booking data.
@@ -164,19 +163,18 @@ export function canBook({
   return true;
 }
 ```
-````
 
 **The assistant's answer: run command, AC mapping and any unclear requirements it flagged,
 pasted unedited.** Its test file goes to `suites/first/` and is not pasted here:
 
-````text
+```text
 Created the Vitest test suite using all 16 reviewed cases plus 2 additional AC5 immutability tests.
 
 Download canBook.test.ts
 
 The suite imports `canBook` rather than duplicating its implementation. The production function remains unchanged.
 
-## 1. Test setup
+\## 1. Test setup
 
 - Framework: Vitest
 - Fixed current time: `now = 540` (09:00)
@@ -188,7 +186,7 @@ The suite imports `canBook` rather than duplicating its implementation. The prod
 
 The test file assumes it sits alongside `canBook.ts` and imports `./canBook`. The page's actual import path could not be verified from the supplied code, so adjust that path if necessary.
 
-## 2. Run command
+\## 2. Run command
 
 From your project root:
 ```
@@ -200,7 +198,7 @@ If Vitest is not installed:
 npm install -D vitest
 ```
 
-## 3. Acceptance criteria mapping
+\## 3. Acceptance criteria mapping
 
 |   |
 | - |
@@ -308,8 +306,8 @@ None
 Not covered
 
 18 executable tests total. Tests have been generated but not run.
-
-## 4. Requirements needing clarification
+```
+\## 4. Requirements needing clarification
 
 AC5: The boolean decision and booking-data immutability are tested. Displaying the exact words "Available" and "Unavailable" requires a page/component test because `canBook()` returns only a boolean.
 
@@ -320,12 +318,12 @@ Additional input validation: The requirements do not specify whether fractional 
 Import path: The actual production module location remains unverified.
 
 The file is ready for your team to place beside the production booking module and execute.
-````
+```
 
 The first suite was saved to `suites/first/` **before** I changed anything in it: yes
 
 ---
-
+```
 ## 5. Task 4 — review of the first suite
 
 Review it **before** you run it. Look at the imports, the expected values, isolation, duplicates
@@ -377,11 +375,6 @@ The deck's improvement prompt exactly as sent, followed by the actual output fro
 paste the assistant's answer, unedited:
 
 ```text
-
-
-#### Prompt sent
-
-````text
 Review this test suite against AC1–AC6 and our case table. Identify incorrect expectations, weak assertions, duplicated cases, and missing boundaries.
 
 For each proposed change, explain the requirement and the defect it could detect. Improve the tests without changing correct expectations to match buggy behavior.
@@ -396,6 +389,11 @@ Failed Suites 1
 
 FAIL src/booking.test.ts [ src/booking.test.ts ]
 Error: Failed to load url ./canBook (resolved id: ./canBook) in C:/Users/Asus/Documents/se-practice/week-07/app/src/booking.test.ts. Does the file exist?
+
+Test Files  1 failed (1)
+Tests       no tests
+Start at    22:21:01
+Duration    1.32s (transform 71ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 922ms)ts. Does the file exist?
 
 Test Files  1 failed (1)
 Tests       no tests
@@ -420,7 +418,7 @@ This is a test setup failure, not a failed booking rule. Vitest could not import
 
 I reviewed all 16 original cases (T01–T14, X1–X2) against the supplied implementation and acceptance criteria. All 16 expected boolean results are correct. None should be changed to accommodate buggy behavior.
 
-## 1. Improved test file
+\## 1. Improved test file
 
 Download improved booking.test.ts
 
@@ -430,7 +428,7 @@ The revised file uses fresh fixtures, exact boolean assertions, booking-value co
 
 One required setup step remains: replace the clearly marked `./ACTUAL_MODULE` import with the real module path. That path cannot be determined from the failure output alone.
 
-## 2. Review of proposed changes
+\## 2. Review of proposed changes
 
 |   |
 | - |
@@ -569,7 +567,7 @@ Accidental deletion, reordering, modification, or replacement of bookings
 
 B03–B04 use synthetic negative `now` values to isolate the `start >= 0` condition. The supplied contract does not restrict `now`, but whether negative current times should be considered valid inputs needs clarification.
 
-## 3. Weak assertions and duplicated cases
+\## 3. Weak assertions and duplicated cases
 
 The original suite already had good exact `toBe(true/false)` assertions and compared booking values and references.
 
@@ -579,17 +577,16 @@ The two additional AC5 tests repeated the T01 and T09 decision scenarios, althou
 
 The revised assertions still verify the expected decision, the entire booking array's values and order, and the identity of every original booking object. These checks establish that booking data is unchanged after the call; they do not prove that no temporary mutation occurred during execution.
 
-## 4. Test repairs versus implementation fixes
+\## 4. Test repairs versus implementation fixes
 
 Test repair — required
 
 Find the actual function in your project. Run this in PowerShell from the project root:
 ```
-Get-ChildItem .\\src -Recurse -Include *.ts,*.tsx | Select-String "canBook"
-```
+
 
 Then point the test import to that exported production module. For example, if the function is exported from `src/lib/booking.ts`, use:
-```
+
 import { canBook, type ExistingBooking } from './lib/booking';
 ```
 
@@ -603,7 +600,7 @@ If `canBook` exists but is not exported, making it available to tests may requir
 
 After the import is repaired, any failing decision test should be investigated against its acceptance criterion. Do not change a correct expectation just to make the test pass.
 
-## 5. AC coverage after improvements
+\## 5. AC coverage after improvements
 
 |   |
 | - |
@@ -687,7 +684,7 @@ Requires page testing
 
 For AC6, I recommend page-level tests at approximately 1280px desktop and 375px mobile width, checking that inputs and decisions remain accessible and that invalid requests produce understandable feedback. The page component and its expected messages are needed to author meaningful assertions; `canBook()` alone cannot verify those behaviors.
 
-## 6. Run the revised suite
+\## 6. Run the revised suite
 
 After correcting the import:
 ```
@@ -798,7 +795,32 @@ change and after restoring the correct code from section 7. Every test must pass
 is still open, leave its test failing and explain it in 9.1.
 
 ```text
-(paste here)
+RUN v2.1.9 C:/Users/Asus/Documents/se-practice/week-07/app
+
+✓ src/booking.test.ts (17)
+  ✓ canBook (17)
+    ✓ T01 AC4: touching after an existing booking is allowed
+    ✓ T02 AC1: starting exactly at now is rejected
+    ✓ T03 AC1: zero-duration interval is rejected
+    ✓ T04 AC1: reversed interval is rejected
+    ✓ T05 AC1: interval ending after 1440 is rejected
+    ✓ T06 AC2: exactly 120 minutes is allowed
+    ✓ T07 AC2: 121 minutes is rejected
+    ✓ T08 AC4: touching before an existing booking is allowed
+    ✓ T09 AC4: partial overlap is rejected
+    ✓ T10 AC4: interval containing an existing booking is rejected
+    ✓ T11 AC4: interval inside an existing booking is rejected
+    ✓ T12 AC4: identical interval is rejected
+    ✓ T13 AC3: blocked room is rejected
+    ✓ T14 AC4: overlapping time is allowed when there are no bookings
+    ✓ AC5: available check does not change existing bookings
+    ✓ X1 AC1 AC4: one minute after now and touching booking is allowed
+    ✓ X2 AC1: interval ending exactly at 1440 is allowed
+
+Test Files  1 passed (1)
+Tests       17 passed (17)
+Start at    23:12:04
+Duration    732ms (transform 41ms, setup 0ms, collect 65ms, tests 4ms, environment 0ms, prepare 148ms)
 ```
 
 ---
@@ -811,18 +833,37 @@ error does not count as detection.
 
 | Trial | Intentional change | Detected / Survived | Failing test ID(s) | If it survived: why, and what you added |
 | --- | --- | --- | --- | --- |
-| M1 | Reject duration >= 120 instead of > 120 | Detected / Survived | | |
-| M2 | Treat touching endpoints as an overlap | Detected / Survived | | |
-| M3 | Remove the blocked-room rejection | Detected / Survived | | |
+| M1 | Reject duration >= 120 instead of > 120 | Detected | T06 | The suite caught the defect because T06 expects exactly 120 minutes to remain allowed. |
+| M2 | Treat touching endpoints as an overlap | Detected | T01, T08, AC5, X1 | The mutant rejected back-to-back intervals. T01 and T08 caught that touching endpoints must remain allowed. |
+| M3 | Remove the blocked-room rejection | Detected | T13 | T13 caught that a blocked room was incorrectly accepted after the AC3 check was removed. |
 
 **The run of each mutant, pasted unedited.** Paste the `Tests` summary line and the failing test
 names at least:
 
 ```text
-(paste here)
+M1
+
+FAIL src/booking.test.ts > canBook > T06 AC2: exactly 120 minutes is allowed
+AssertionError: expected false to be true
+
+Tests  1 failed | 16 passed (17)
+M2
+
+FAIL src/booking.test.ts > canBook > T01 AC4: touching after an existing booking is allowed
+FAIL src/booking.test.ts > canBook > T08 AC4: touching before an existing booking is allowed
+FAIL src/booking.test.ts > canBook > AC5: available check does not change existing bookings
+FAIL src/booking.test.ts > canBook > X1 AC1 AC4: one minute after now and touching booking is allowed
+
+Tests  4 failed | 13 passed (17)
+M3
+
+FAIL src/booking.test.ts > canBook > T13 AC3: blocked room is rejected
+AssertionError: expected true to be false
+
+Tests  1 failed | 16 passed (17)
 ```
 
-All three changes reverted, and the full suite run again (section 6.3): yes / no
+All three changes reverted, and the full suite run again (section 6.3): yes
 
 ---
 
@@ -834,11 +875,11 @@ screenshot of each as `evidence/ui-1.png` … `evidence/ui-5.png`. Take **ui-4 a
 
 | # | Action | Expected observation | AC | What I observed | Pass / Fail / Not testable |
 | --- | --- | --- | --- | --- | --- |
-| U1 | Check 11:00–12:00, unblocked | Available, with the fixed sample booking | AC5 | | Pass / Fail / Not testable |
-| U2 | Enable blocked, then check again | Unavailable replaces the earlier result | AC3, AC5 | | Pass / Fail / Not testable |
-| U3 | Clear a required input and submit | Understandable validation feedback | AC6 | | Pass / Fail / Not testable |
-| U4 | Use a narrow (phone) width | Controls and result remain usable | AC6 | | Pass / Fail / Not testable |
-| U5 | Repeat the checks on the same data | Existing bookings remain unchanged | AC5 | | Pass / Fail / Not testable |
+| U1 | Check 11:00–12:00, unblocked | Available, with the fixed sample booking | AC5 | Newton Lab showed Available for 11:00–12:00 while the existing 10:00–11:00 booking remained visible. | Pass |
+| U2 | Enable blocked, then check again | Unavailable replaces the earlier result | AC3, AC5 | Curie Auditorium showed Unavailable with a clear blocked-room reason. | Pass |
+| U3 | Clear a required input and submit | Understandable validation feedback | AC6 | With Start Time empty, the page showed “Please enter valid times in HH:MM format.” | Pass |
+| U4 | Use a narrow (phone) width | Controls and result remain usable | AC6 | At about 375 px portrait width, the form, buttons, and Available result remained readable and usable. | Pass |
+| U5 | Repeat the checks on the same data | Existing bookings remain unchanged | AC5 | After repeating the check, the existing Physics Lab Session at 10:00–11:00 was still present and unchanged. | Pass |
 
 ---
 
@@ -846,21 +887,18 @@ screenshot of each as `evidence/ui-1.png` … `evidence/ui-5.png`. Take **ui-4 a
 
 ### 9.1 Checks I am keeping as FAIL or ERROR
 
-Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run is clean.
-
 | Check | Why it stays |
 | --- | --- |
-| | |
-
+| R1 | The first suite failed during import because it used `./canBook` instead of the real `./booking` module. Vitest collected 0 tests, so there is no numeric first-run test summary to report. The real terminal output is preserved in section 6.1. |
 ### 9.2 Original and improved suites
 
 | Measure | First suite | Improved suite |
 | --- | --- | --- |
-| Executed / passed / failed | | |
-| Requirements with meaningful tests (AC IDs and gaps) | | |
-| Selected mutants detected | | |
-| Accepted / revised / rejected tests | | |
-| Remaining limitations | | |
+| Executed / passed / failed | 0 executed / 0 passed / import error before tests ran | 17 executed / 17 passed / 0 failed |
+| Requirements with meaningful tests (AC IDs and gaps) | AC1–AC5 were represented in the generated cases, but the suite could not run because of the wrong import path. AC6 was not covered by unit tests. | AC1–AC5 are covered by separate unit tests with exact expected decisions. AC6 is checked manually in the UI. |
+| Selected mutants detected | Not tested because the first suite did not run | M1 detected by T06; M2 detected by T01, T08, AC5 and X1; M3 detected by T13 |
+| Accepted / revised / rejected tests | Expected values and immutability assertions were accepted; the import path and table-driven `it.each` structure were revised | 17 separate tests accepted: T01–T14, AC5, X1 and X2 |
+| Remaining limitations | Could not execute, used the wrong import path, and used `it.each`, which did not satisfy the final checker rules | Unit tests do not verify visual responsiveness or user-facing validation text; those are covered only by manual UI checks |
 
 ### 9.3 What no AC decides
 
@@ -868,7 +906,7 @@ Call your function with `bookings = [{ start: 700, end: 650 }]` (a reversed exis
 and a request of 660–720. What does it return? Does any AC say what it should return? (This is
 the value you declare in `submission.yml` under `assumptions.invalid_existing_booking`.)
 
--
+With `bookings = [{ start: 700, end: 650 }]` and a request of `660–720`, my `canBook` returns `true`. The overlap condition does not detect the reversed existing booking as a conflict. None of AC1–AC6 specifies how invalid existing booking data should be handled, so this behavior is an assumption rather than a requirement.
 
 ---
 
@@ -884,3 +922,10 @@ the value you declare in `submission.yml` under `assumptions.invalid_existing_bo
      pass, M1 would have become the real behaviour." -->
 
 <!-- Write your conclusion below this line -->
+
+
+My first suite never ran, so it checked nothing. It imported ./canBook, but the page uses ./booking, and Vitest stopped with a load error before any test was collected. A wrong canBook would have passed unnoticed, because no assertion ever touched it. I found this in the first run’s output, then fixed the import and replaced it.each with separately named tests.
+
+The final suite has 17 tests and all of them pass. I trust it more because of the mutants: M1 (>= 120 instead of > 120) failed T06, M2 (touching treated as overlap) failed T01, T08 and X1, and M3 (blocked check removed) failed T13.
+
+A green run still does not prove everything. It says nothing about the page itself, so I checked responsive layout and validation feedback manually in the browser. One limitation remains: no AC says what to do with an invalid existing booking, such as 700–650, so that behaviour is only my assumption.
