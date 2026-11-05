@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { rooms, bookings } from './sampleData';
 import { checkAvailability, timeToMinutes, minutesToTime, formatDuration, overlapsExisting } from './bookingLogic';
 import type { CheckResult } from './types';
+import { canBook } from './booking';
 
 export default function App() {
   const [roomId, setRoomId] = useState('');
@@ -20,19 +21,35 @@ export default function App() {
     [roomId],
   );
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const startMin = timeToMinutes(startTime);
-    const endMin = timeToMinutes(endTime);
+function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  const startMin = timeToMinutes(startTime);
+  const endMin = timeToMinutes(endTime);
 
-    if (startMin === null || endMin === null) {
-      setResult({ available: false, reason: 'Please enter valid times in HH:MM format.' });
-      return;
-    }
-
-    setResult(checkAvailability(startMin, endMin, selectedRoom, roomBookings, currentTime));
+  if (startMin === null || endMin === null) {
+    setResult({ available: false, reason: 'Please enter valid times in HH:MM format.' });
+    return;
   }
 
+  if (!selectedRoom) {
+    setResult({ available: false, reason: 'Please select a room.' });
+    return;
+  }
+
+  const available = canBook({
+    start: startMin,
+    end: endMin,
+    now: currentTime,
+    blocked: selectedRoom.blocked,
+    bookings: roomBookings,
+  });
+
+  if (available) {
+    setResult({ available: true });
+  } else {
+    setResult(checkAvailability(startMin, endMin, selectedRoom, roomBookings, currentTime));
+  }
+}
   function handleReset() {
     setRoomId('');
     setStartTime('');

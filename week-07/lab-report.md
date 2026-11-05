@@ -27,18 +27,19 @@ grader find your answers by them. You can add rows to any table, but never remov
 
 **Before editing:** where did the booking decision live in the project you started from?
 
+
 | | |
 | --- | --- |
-| File and function (or "inside the page component") | |
-| Its inputs | |
-| What it returned | |
-| How the page used it | |
+| File and function (or "inside the page component") | `app/src/bookingLogic.ts`, function `checkAvailability(...)` |
+| Its inputs | `startMin`, `endMin`, selected `room`, `roomBookings`, and `currentTime` |
+| What it returned | A `CheckResult` object with `available: true/false` and, when unavailable, a human-readable `reason` |
+| How the page used it | The page called `checkAvailability(...)` after converting the entered times to minutes, then displayed Available / Unavailable and the returned reason |
 
 **What I changed to extract `canBook`.** Say which file it now lives in, what you moved, and why
 the behaviour did not change. Also say which file of the page now calls it. 40 words or more.
 
 <!-- Write below this line -->
-
+I created `app/src/booking.ts` and moved the core booking decision into a new `canBook` function. It receives the candidate start and end times, the supplied current time, the blocked state, and the existing bookings, then returns only `true` or `false`. I kept the validation messages and time conversion in `App.tsx`. The page now imports and calls `canBook`, while the existing `checkAvailability` function is still used only to provide a human-readable reason when the result is unavailable. The booking rules themselves were not intentionally changed.
 ---
 
 ## 3. Task 2 — the test plan
