@@ -13,55 +13,56 @@ schema: 1
 week: "07"
 
 student:
-  name:
-  student_id:          # as in KBTU records, e.g. 00X000000
-  github:              # your GitHub username, the one that owns the repo
+  name: Darkhan Izbasarov
+  student_id: 24B031815         # as in KBTU records, e.g. 00X000000
+  github: Darics3             # your GitHub username, the one that owns the repo
 
 assistant:
-  tool:                # the assistant that generated the tests: Bolt.new, ChatGPT, Claude, Copilot, ...
-  model:               # the exact model with its version, or: not displayed
+  tool:  ChatGPT              # the assistant that generated the tests: Bolt.new, ChatGPT, Claude, Copilot, ...
+  model:  GPT-5.6 Sol             # the exact model with its version, or: not displayed
 
 project:
-  baseline:            # week-06 (your Week 06 Bolt project) | starter (the provided starter/)
-  bolt_url:            # the share link of your Bolt project, or: not-shared
-  vitest:              # the Vitest version from the "RUN  v..." line, e.g. 3.2.4
+  baseline:  week-06          # week-06 (your Week 06 Bolt project) | starter (the provided starter/)
+  bolt_url: https://bolt.new/~/sb1-3qzqwxxp           # the share link of your Bolt project, or: not-shared
+  vitest: 2.1.9             # the Vitest version from the "RUN  v..." line, e.g. 3.2.4
 
 counts:
-  tests_first:         # tests in the assistant's first suite (suites/first/)
-  tests_final:         # tests in your final suite (app/.../booking.test.*)
-  first_run_failed:    # failed tests in your first run (lab-report.md 6.1)
-  review_decisions:    # rows in lab-report.md section 5
-  mutants_detected:    # how many of M1-M3 your final suite detected (0-3)
+  tests_first: 0        # tests in the assistant's first suite (suites/first/)
+  tests_final:  17       # tests in your final suite (app/.../booking.test.*)
+  first_run_failed: 0    # failed tests in your first run (lab-report.md 6.1)
+  review_decisions: 2   # rows in lab-report.md section 5
+  mutants_detected: 3   # how many of M1-M3 your final suite detected (0-3)
 
 checker:
   # Numbers from YOUR last run of: python tests/check_suite.py
   # They must add up to the number of checks it runs (33).
   # Report them as they came out.
   # A FAIL you report and explain in lab-report.md costs you nothing. A hidden one costs the criterion.
-  pass:
-  fail:
-  error:
-  commit:              # the commit you ran the checker at: git rev-parse --short HEAD
+  pass: 32
+  fail: 1
+  error: 0
+  commit: e2e52e2             # the commit you ran the checker at: git rev-parse --short HEAD
                        # (normally the commit just before you commit this file — that is fine)
-  known_fails: []      # every check ID that is still FAIL or ERROR, explained in lab-report.md §9.1, e.g. [U2]
+  known_fails: [R1]      # every check ID that is still FAIL or ERROR, explained in lab-report.md §9.1, e.g. [U2]
 
 assumptions:
   # No AC says what canBook does when an EXISTING booking is reversed: {start: 700, end: 650}.
   # Call your function with that booking and a 660-720 request, write down what it returns,
   # and defend it in lab-report.md §9.3. Any answer is acceptable. Not checking is not.
-  invalid_existing_booking:   # returns-true | returns-false | throws
+  invalid_existing_booking: returns-true  # returns-true | returns-false | throws
 
 review_findings:
   # Three or more. One line each, and each one names what it is about: a case (T01-T14, X1, X2),
   # an AC, a mutant (M1-M3), or a file.
   # Worthless:        "The AI tests were mostly fine"
   # Worth everything: "T06: the first suite expected 720-840 to be rejected, but AC2 allows exactly 120 minutes"
-  -
-  -
-  -
+  - "booking.test.ts: the first suite imported ./canBook instead of the real ./booking module, so Vitest collected no tests."
+  - "T01-T14: the first suite used it.each, but the final suite requires separately named tests for every case."
+  - "M1-M3: the final suite detected the duration boundary defect, touching-endpoint overlap defect, and removed blocked-room rejection."
+
 
 honesty:
-  first_suite_unedited:     # yes | no   suites/first/ holds the assistant's first test file as generated
-  outputs_unedited:         # yes | no   every run in lab-report.md is pasted from a real terminal, unedited
-  mutants_restored:         # yes | no   the three defects were reverted before the final run
-  ai_usage_disclosed:       # yes | no   AI_USAGE.md is complete
+  first_suite_unedited: yes    # yes | no   suites/first/ holds the assistant's first test file as generated
+  outputs_unedited: yes        # yes | no   every run in lab-report.md is pasted from a real terminal, unedited
+  mutants_restored: yes        # yes | no   the three defects were reverted before the final run
+  ai_usage_disclosed: yes       # yes | no   AI_USAGE.md is complete
