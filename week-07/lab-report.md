@@ -1,8 +1,8 @@
 # Week 07 — Lab report
 
-**Name:**
-**Group:**
-**Date:**
+**Name:** Darkhan Izbassarov 
+**Group:** Monday 16:00-19:00
+**Date:** 2026-11-05
 
 Fill in every section. **Do not delete, rename or renumber the headings.** The checker and the
 grader find your answers by them. You can add rows to any table, but never remove its header.
@@ -39,7 +39,7 @@ grader find your answers by them. You can add rows to any table, but never remov
 the behaviour did not change. Also say which file of the page now calls it. 40 words or more.
 
 <!-- Write below this line -->
-I created `app/src/booking.ts` and moved the core booking decision into a new `canBook` function. It receives the candidate start and end times, the supplied current time, the blocked state, and the existing bookings, then returns only `true` or `false`. I kept the validation messages and time conversion in `App.tsx`. The page now imports and calls `canBook`, while the existing `checkAvailability` function is still used only to provide a human-readable reason when the result is unavailable. The booking rules themselves were not intentionally changed.
+I created `app/src/booking.ts` and extracted the core booking decision into a new `canBook` function. It receives the candidate start and end times, the supplied current time, the blocked state, and the existing bookings, then returns only `true` or `false`. I kept the validation messages and time conversion in `App.tsx`. The page now imports and calls `canBook`, while the existing `checkAvailability` function is still used only to provide a human-readable reason when the result is unavailable. The booking rules themselves were not intentionally changed.
 ---
 
 ## 3. Task 2 — the test plan
@@ -50,23 +50,23 @@ for every test. **The Expected column comes from AC1–AC4, never from the code.
 
 | ID | Candidate / changed input | Expected | AC | Reason (in your words) |
 | --- | --- | --- | --- | --- |
-| T01 | 660–720 (touching after) | true | AC4 | |
-| T02 | 540–570 (starts now) | false | AC1 | |
-| T03 | 720–720 (zero duration) | false | AC1 | |
-| T04 | 750–720 (reversed) | false | AC1 | |
-| T05 | 1380–1441 (past day end) | false | AC1 | |
-| T06 | 720–840 (120 minutes) | true | AC2 | |
-| T07 | 720–841 (121 minutes) | false | AC2 | |
-| T08 | 570–600 (touching before) | true | AC4 | |
-| T09 | 630–690 (partial overlap) | false | AC4 | |
-| T10 | 570–690 (contains booking) | false | AC4 | |
-| T11 | 615–645 (inside booking) | false | AC4 | |
-| T12 | 600–660 (identical interval) | false | AC4 | |
-| T13 | 660–720, blocked = true | false | AC3 | |
-| T14 | 630–690, bookings = [] | true | AC4 | |
-| AC5 | an Available request — the bookings after the call equal the bookings before | true, data unchanged | AC5 | |
-| X1 | | | | |
-| X2 | | | | |
+| T01 | 660–720 (touching after) | true | AC4 | Starts exactly where the booking ends, so the intervals only touch. Touching is not overlap, and 60 minutes is within the limit, so it is allowed. |
+| T02 | 540–570 (starts now) | false | AC1 | Start must be strictly after now, and 540 is equal to now, not after it. |
+| T03 | 720–720 (zero duration) | false | AC1 | AC1 requires start < end, and here they are equal, so there is no real interval. |
+| T04 | 750–720 (reversed) | false | AC1 | The end is before the start, which breaks start < end. |
+| T05 | 1380–1441 (past day end) | false | AC1 | End must be at most 1440, and 1441 is past the end of the day. |
+| T06 | 720–840 (120 minutes) | true | AC2 | AC2 rejects only bookings longer than 120 minutes, so exactly 120 minutes is allowed. |
+| T07 | 720–841 (121 minutes) | false | AC2 | One minute over the 120-minute maximum. |
+| T08 | 570–600 (touching before) | true | AC4 | Ends exactly where the booking starts, so it only touches. Start 570 is after now, so it is valid. |
+| T09 | 630–690 (partial overlap) | false | AC4 | The request begins inside the booking (630 < 660) and ends after it, so it overlaps. |
+| T10 | 570–690 (contains booking) | false | AC4 | The request covers the whole booking from both sides. It is valid on length (120), so only the overlap rule rejects it. |
+| T11 | 615–645 (inside booking) | false | AC4 | The request lies completely inside the existing booking, so it overlaps. |
+| T12 | 600–660 (identical interval) | false | AC4 | Same start and end as the booking, so it overlaps completely. |
+| T13 | 660–720, blocked = true | false | AC3 | This request would be allowed with an open room (see T01), so blocked is the only reason to reject it. |
+| T14 | 630–690, bookings = [] | true | AC4 | The same interval was rejected in T09 only because of the booking. With no bookings there is nothing to overlap, so it is allowed. |
+| AC5 | an Available request — the bookings after the call equal the bookings before | true, data unchanged | AC5 | Checking availability must never change existing bookings, so the list is identical after the call. |
+| X1 | 541–600 (starts one minute after now) | true | AC1, AC4 | T02 tests only start = now, which is invalid. This tests the first valid start, now + 1. It also touches the booking at 600, which is not overlap. |
+| X2 | 1380–1440 (ends exactly at day end) | true | AC1 | T05 tests 1441, which is outside the day. This tests the exact upper boundary, 1440, which AC1 allows. The request is otherwise valid, so the expected result is true. |
 
 X1 and X2 are **your own two cases**: a boundary or a state that T01–T14 do not reach. Fill all
 five columns.
