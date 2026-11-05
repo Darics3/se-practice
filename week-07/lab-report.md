@@ -78,18 +78,251 @@ five columns.
 **The prompt exactly as I sent it.** Use the deck's prompt with `[our test framework]` replaced by
 `Vitest`, followed by the case table from section 3:
 
-```text
-(paste here)
+````text
+Generate tests for the existing booking function using Vitest. Use AC1–AC6 and the reviewed case table below.
+
+Import the real function used by the page. Keep its code unchanged. Use fixed time and fresh fixtures. Assert exact decisions and unchanged booking data.
+
+Return the test file, run command, and AC mapping. Flag unclear requirements. We will run the tests ourselves.
+
+Acceptance criteria:
+
+AC1: Accept a candidate interval only when 0 ≤ start < end ≤ 1440 and start is after the supplied current time.
+AC2: Reject a booking longer than 120 minutes.
+AC3: Reject the request when the selected room is blocked.
+AC4: Reject any interval that overlaps an existing booking; touching endpoints are allowed.
+AC5: Show a clear Available / Unavailable decision without changing the existing booking data.
+AC6: The page remains usable at desktop and narrow/mobile width and gives understandable validation feedback.
+
+Reviewed case table:
+
+| ID | Candidate / changed input | Expected | AC | Reason |
+| --- | --- | --- | --- | --- |
+| T01 | 660–720 (touching after) | true | AC4 | Starts exactly where the booking ends, so the intervals only touch. Touching is not overlap, and 60 minutes is within the limit, so it is allowed. |
+| T02 | 540–570 (starts now) | false | AC1 | Start must be strictly after now, and 540 is equal to now, not after it. |
+| T03 | 720–720 (zero duration) | false | AC1 | AC1 requires start < end, and here they are equal, so there is no real interval. |
+| T04 | 750–720 (reversed) | false | AC1 | The end is before the start, which breaks start < end. |
+| T05 | 1380–1441 (past day end) | false | AC1 | End must be at most 1440, and 1441 is past the end of the day. |
+| T06 | 720–840 (120 minutes) | true | AC2 | AC2 rejects only bookings longer than 120 minutes, so exactly 120 minutes is allowed. |
+| T07 | 720–841 (121 minutes) | false | AC2 | One minute over the 120-minute maximum. |
+| T08 | 570–600 (touching before) | true | AC4 | Ends exactly where the booking starts, so it only touches. Start 570 is after now, so it is valid. |
+| T09 | 630–690 (partial overlap) | false | AC4 | The request begins inside the booking and ends after it, so it overlaps. |
+| T10 | 570–690 (contains booking) | false | AC4 | The request covers the whole booking from both sides. |
+| T11 | 615–645 (inside booking) | false | AC4 | The request lies completely inside the existing booking, so it overlaps. |
+| T12 | 600–660 (identical interval) | false | AC4 | Same start and end as the booking, so it overlaps completely. |
+| T13 | 660–720, blocked = true | false | AC3 | This request would be allowed with an open room, so blocked is the only reason to reject it. |
+| T14 | 630–690, bookings = [] | true | AC4 | With no bookings there is nothing to overlap, so it is allowed. |
+| AC5 | an Available request — bookings after the call equal bookings before | true, data unchanged | AC5 | Checking availability must never change existing bookings. |
+| X1 | 541–600 | true | AC1, AC4 | This tests the first valid start after now and touches the booking at 600. |
+| X2 | 1380–1440 | true | AC1 | This tests the exact upper boundary of the day, which AC1 allows. |
+
+Existing function:
+
+```ts
+export type ExistingBooking = {
+  start: number;
+  end: number;
+};
+
+type CanBookInput = {
+  start: number;
+  end: number;
+  now: number;
+  blocked: boolean;
+  bookings: ExistingBooking[];
+};
+
+export function canBook({
+  start,
+  end,
+  now,
+  blocked,
+  bookings,
+}: CanBookInput): boolean {
+  if (!(0 <= start && start < end && end <= 1440)) {
+    return false;
+  }
+
+  if (start <= now) {
+    return false;
+  }
+
+  if (end - start > 120) {
+    return false;
+  }
+
+  if (blocked) {
+    return false;
+  }
+
+  for (const booking of bookings) {
+    if (start < booking.end && booking.start < end) {
+      return false;
+    }
+  }
+
+  return true;
+}
 ```
+````
 
 **The assistant's answer: run command, AC mapping and any unclear requirements it flagged,
 pasted unedited.** Its test file goes to `suites/first/` and is not pasted here:
 
-```text
-(paste here)
+````text
+Created the Vitest test suite using all 16 reviewed cases plus 2 additional AC5 immutability tests.
+
+Download canBook.test.ts
+
+The suite imports `canBook` rather than duplicating its implementation. The production function remains unchanged.
+
+## 1. Test setup
+
+- Framework: Vitest
+- Fixed current time: `now = 540` (09:00)
+- Default existing booking: `600–660` (10:00–11:00)
+- Fresh fixtures: New booking objects for each test
+- Assertions: Exact `true`/`false` using `toBe()`
+- Immutability: Checks booking values and object references after every call
+- Mocks: None
+
+The test file assumes it sits alongside `canBook.ts` and imports `./canBook`. The page's actual import path could not be verified from the supplied code, so adjust that path if necessary.
+
+## 2. Run command
+
+From your project root:
+```
+npx vitest run canBook.test.ts
 ```
 
-The first suite was saved to `suites/first/` **before** I changed anything in it: yes / no
+If Vitest is not installed:
+```
+npm install -D vitest
+```
+
+## 3. Acceptance criteria mapping
+
+|   |
+| - |
+
+AC
+
+|   |
+| - |
+
+Tests
+
+|   |
+| - |
+
+Coverage
+
+|   |
+| - |
+
+AC1 — Valid interval/time
+
+|   |
+| - |
+
+T02–T05, X1, X2
+
+|   |
+| - |
+
+Covered
+
+|   |
+| - |
+
+AC2 — 120-minute limit
+
+|   |
+| - |
+
+T06, T07
+
+|   |
+| - |
+
+Covered
+
+|   |
+| - |
+
+AC3 — Blocked room
+
+|   |
+| - |
+
+T13
+
+|   |
+| - |
+
+Covered
+
+|   |
+| - |
+
+AC4 — Overlap rules
+
+|   |
+| - |
+
+T01, T08–T12, T14, X1
+
+|   |
+| - |
+
+Covered
+
+|   |
+| - |
+
+AC5 — Decision and unchanged data
+
+|   |
+| - |
+
+All 16 cases + 2 AC5 tests
+
+|   |
+| - |
+
+Partially covered
+
+|   |
+| - |
+
+AC6 — Responsive UI and feedback
+
+|   |
+| - |
+
+None
+
+|   |
+| - |
+
+Not covered
+
+18 executable tests total. Tests have been generated but not run.
+
+## 4. Requirements needing clarification
+
+AC5: The boolean decision and booking-data immutability are tested. Displaying the exact words "Available" and "Unavailable" requires a page/component test because `canBook()` returns only a boolean.
+
+AC6: Responsive desktop/mobile behavior and understandable validation feedback cannot be verified from the pure booking function. These require the page component, its actual UI, and defined viewport sizes and expected messages.
+
+Additional input validation: The requirements do not specify whether fractional minutes, `NaN`, or other non-finite numbers must be rejected. The supplied implementation does not explicitly validate integer or finite-number inputs.
+
+Import path: The actual production module location remains unverified.
+
+The file is ready for your team to place beside the production booking module and execute.
+````
+
+The first suite was saved to `suites/first/` **before** I changed anything in it: yes
 
 ---
 
