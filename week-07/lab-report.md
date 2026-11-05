@@ -18,7 +18,7 @@ grader find your answers by them. You can add rows to any table, but never remov
 | Assistant that generated the tests (tool) | ChatGPT |
 | Exact model (with its version, or `not displayed`) | GPT-5.6 Sol |
 | Where I ran the tests (Bolt terminal / my computer / Codespace) | my computer |
-| Vitest version (the `RUN v…` line of a run) | not installed yet |
+| Vitest version (the `RUN v…` line of a run) | v2.1.9 |
 | Test command | npx vitest run |
 
 ---
@@ -335,8 +335,8 @@ requests* · *mocked booking function*, or your own) and the AC that decides it.
 
 | # | Test or part of the suite | What is weak or wrong | Decision: accept / revise / reject | AC or reason |
 | --- | --- | --- | --- | --- |
-| 1 | | | accept / revise / reject | |
-| 2 | | | accept / revise / reject | |
+| 1 | Import of `canBook` | Imports `./canBook`, but the real production module used by the page is `./booking` | revise | The test must import the real function used by the UI; otherwise it will not test the production module |
+| 2 | `it.each(...)` table-driven tests | The suite groups many cases into `it.each`, but the final rules require one separately named test per case ID | revise | The checker requires one test per case with the ID in its title, and explicitly disallows `test.each` / `it.each` |
 
 ---
 
@@ -349,7 +349,19 @@ The **real** terminal output of the first run of the first suite, pasted unedite
 is not a run.
 
 ```text
-(paste here)
+RUN v2.1.9 C:/Users/Asus/Documents/se-practice/week-07/app
+
+❯ src/booking.test.ts (0)
+
+Failed Suites 1
+
+FAIL src/booking.test.ts [ src/booking.test.ts ]
+Error: Failed to load url ./canBook (resolved id: ./canBook) in C:/Users/Asus/Documents/se-practice/week-07/app/src/booking.test.ts. Does the file exist?
+
+Test Files  1 failed (1)
+Tests       no tests
+Start at    22:21:01
+Duration    1.32s (transform 71ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 922ms)
 ```
 
 **Each failure, diagnosed** (the deck's table: import/runner error · assertion mismatch · result
@@ -357,7 +369,7 @@ changing per run · no tests discovered). Write `none` in the first row if nothi
 
 | Failing test | Observed failure | First check | Test repair or implementation fix? | Action taken |
 | --- | --- | --- | --- | --- |
-| | | | | |
+| `src/booking.test.ts` | Import / runner error: failed to load `./canBook` | Checked the import path and the real production module name | Test repair | The generated suite imports `./canBook`, but the real module used by the page is `./booking`. The import will be corrected in the improved suite. |
 
 ### 6.2 The improvement prompt
 
@@ -365,7 +377,418 @@ The deck's improvement prompt exactly as sent, followed by the actual output fro
 paste the assistant's answer, unedited:
 
 ```text
-(paste here)
+
+
+#### Prompt sent
+
+````text
+Review this test suite against AC1–AC6 and our case table. Identify incorrect expectations, weak assertions, duplicated cases, and missing boundaries.
+
+For each proposed change, explain the requirement and the defect it could detect. Improve the tests without changing correct expectations to match buggy behavior.
+
+Use the actual failure output below. Separate test repairs from implementation fixes.
+
+RUN v2.1.9 C:/Users/Asus/Documents/se-practice/week-07/app
+
+❯ src/booking.test.ts (0)
+
+Failed Suites 1
+
+FAIL src/booking.test.ts [ src/booking.test.ts ]
+Error: Failed to load url ./canBook (resolved id: ./canBook) in C:/Users/Asus/Documents/se-practice/week-07/app/src/booking.test.ts. Does the file exist?
+
+Test Files  1 failed (1)
+Tests       no tests
+Start at    22:21:01
+Duration    1.32s (transform 71ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 922ms)
+````
+
+#### Assistant's answer
+
+````text
+## Review result
+
+Import error — no tests executed
+
+The Vitest output shows:
+```
+Failed to load url ./canBook
+Tests: no tests
+```
+
+This is a test setup failure, not a failed booking rule. Vitest could not import the module, so none of the test expectations have been evaluated.
+
+I reviewed all 16 original cases (T01–T14, X1–X2) against the supplied implementation and acceptance criteria. All 16 expected boolean results are correct. None should be changed to accommodate buggy behavior.
+
+## 1. Improved test file
+
+Download improved booking.test.ts
+
+23 tests · Original expectations preserved · 7 additional cases
+
+The revised file uses fresh fixtures, exact boolean assertions, booking-value comparisons, and object-reference checks.
+
+One required setup step remains: replace the clearly marked `./ACTUAL_MODULE` import with the real module path. That path cannot be determined from the failure output alone.
+
+## 2. Review of proposed changes
+
+|   |
+| - |
+
+Change
+
+|   |
+| - |
+
+Requirement
+
+|   |
+| - |
+
+Defect it could detect
+
+|   |
+| - |
+
+Repair import path
+
+|   |
+| - |
+
+Test the real `canBook` function
+
+|   |
+| - |
+
+Tests importing a missing or duplicate implementation
+
+|   |
+| - |
+
+B01: start before now
+
+|   |
+| - |
+
+AC1
+
+|   |
+| - |
+
+Code rejecting only `start === now` but accepting earlier starts
+
+|   |
+| - |
+
+B02: one-minute interval
+
+|   |
+| - |
+
+AC1
+
+|   |
+| - |
+
+Code incorrectly rejecting the smallest positive integer-minute duration
+
+|   |
+| - |
+
+B03–B04: lower boundary 0
+
+|   |
+| - |
+
+AC1
+
+|   |
+| - |
+
+Incorrect lower-bound comparison, such as `start > 0` instead of `start >= 0`
+
+|   |
+| - |
+
+B05: overlap from left
+
+|   |
+| - |
+
+AC4
+
+|   |
+| - |
+
+Overlap logic detecting only intervals that start inside an existing booking
+
+|   |
+| - |
+
+B06: overlap with second booking
+
+|   |
+| - |
+
+AC4
+
+|   |
+| - |
+
+Loop checking only the first booking or returning `true` too early
+
+|   |
+| - |
+
+B07: available gap between bookings
+
+|   |
+| - |
+
+AC4
+
+|   |
+| - |
+
+Code rejecting every request when bookings exist, even without overlap
+
+|   |
+| - |
+
+Check values and references in every case
+
+|   |
+| - |
+
+AC5
+
+|   |
+| - |
+
+Accidental deletion, reordering, modification, or replacement of bookings
+
+B03–B04 use synthetic negative `now` values to isolate the `start >= 0` condition. The supplied contract does not restrict `now`, but whether negative current times should be considered valid inputs needs clarification.
+
+## 3. Weak assertions and duplicated cases
+
+The original suite already had good exact `toBe(true/false)` assertions and compared booking values and references.
+
+Its main weakness was coverage, not incorrect expectations.
+
+The two additional AC5 tests repeated the T01 and T09 decision scenarios, although they used an extra booking. I removed those separate tests because every table-driven test already checks immutability. B06 and B07 now exercise multiple bookings more purposefully.
+
+The revised assertions still verify the expected decision, the entire booking array's values and order, and the identity of every original booking object. These checks establish that booking data is unchanged after the call; they do not prove that no temporary mutation occurred during execution.
+
+## 4. Test repairs versus implementation fixes
+
+Test repair — required
+
+Find the actual function in your project. Run this in PowerShell from the project root:
+```
+Get-ChildItem .\\src -Recurse -Include *.ts,*.tsx | Select-String "canBook"
+```
+
+Then point the test import to that exported production module. For example, if the function is exported from `src/lib/booking.ts`, use:
+```
+import { canBook, type ExistingBooking } from './lib/booking';
+```
+
+Do not create a replacement `canBook` inside the test file.
+
+Implementation fixes — not yet justified
+
+The reported failure provides no evidence that the booking algorithm is wrong.
+
+If `canBook` exists but is not exported, making it available to tests may require a non-behavioral production refactor. That is separate from changing its decision logic.
+
+After the import is repaired, any failing decision test should be investigated against its acceptance criterion. Do not change a correct expectation just to make the test pass.
+
+## 5. AC coverage after improvements
+
+|   |
+| - |
+
+Criterion
+
+|   |
+| - |
+
+Status
+
+|   |
+| - |
+
+AC1 — Interval and current-time boundaries
+
+|   |
+| - |
+
+Covered, subject to `now` domain clarification
+
+|   |
+| - |
+
+AC2 — Maximum 120 minutes
+
+|   |
+| - |
+
+Covered
+
+|   |
+| - |
+
+AC3 — Blocked room
+
+|   |
+| - |
+
+Covered
+
+|   |
+| - |
+
+AC4 — Overlap and touching endpoints
+
+|   |
+| - |
+
+Covered
+
+|   |
+| - |
+
+AC5 — Boolean decision and immutable bookings
+
+|   |
+| - |
+
+Covered at function level
+
+|   |
+| - |
+
+AC5 — Visible Available / Unavailable
+
+|   |
+| - |
+
+Requires page testing
+
+|   |
+| - |
+
+AC6 — Responsive layout and feedback
+
+|   |
+| - |
+
+Requires page testing
+
+For AC6, I recommend page-level tests at approximately 1280px desktop and 375px mobile width, checking that inputs and decisions remain accessible and that invalid requests produce understandable feedback. The page component and its expected messages are needed to author meaningful assertions; `canBook()` alone cannot verify those behaviors.
+
+## 6. Run the revised suite
+
+After correcting the import:
+```
+npx vitest run src/booking.test.ts
+```
+
+Expected test count: 23. The suite has not been executed against your local project.
+
+The next meaningful result is the test output after import resolution. At that point, failures can be classified as genuine implementation defects, remaining test setup issues, or unclear requirements without weakening any correct expectation.
+
+import { describe, expect, it } from 'vitest';
+
+// IMPORTANT: Resolve this import to the ACTUAL exported module used by the page.
+// The original './canBook' fails to resolve from src/booking.test.ts.
+// Examples ONLY (do not guess): './App' for src/App.tsx, or
+// './lib/booking' for src/lib/booking.ts. Do not copy canBook into this test.
+import { canBook, type ExistingBooking } from './ACTUAL_MODULE';
+
+const NOW = 540; // 09:00, fixed: no Date.now(), fake timers, or changing clock.
+const DEFAULT_RANGES = [[600, 660]] as const; // 10:00–11:00
+
+type Range = readonly [start: number, end: number];
+
+type Case = {
+  id: string;
+  ac: string;
+  start: number;
+  end: number;
+  expected: boolean;
+  now?: number;
+  blocked?: boolean;
+  ranges?: readonly Range[];
+};
+
+function freshBookings(ranges: readonly Range[] = DEFAULT_RANGES): ExistingBooking[] {
+  // New array AND new objects on every invocation (no shared mutable fixtures).
+  return ranges.map(([start, end]) => ({ start, end }));
+}
+
+const cases: Case[] = [
+  // Reviewed case table: preserve ALL expected outcomes.
+  { id: 'T01', ac: 'AC4', start: 660, end: 720, expected: true },
+  { id: 'T02', ac: 'AC1', start: 540, end: 570, expected: false },
+  { id: 'T03', ac: 'AC1', start: 720, end: 720, expected: false },
+  { id: 'T04', ac: 'AC1', start: 750, end: 720, expected: false },
+  { id: 'T05', ac: 'AC1', start: 1380, end: 1441, expected: false },
+  { id: 'T06', ac: 'AC2', start: 720, end: 840, expected: true },
+  { id: 'T07', ac: 'AC2', start: 720, end: 841, expected: false },
+  { id: 'T08', ac: 'AC4', start: 570, end: 600, expected: true },
+  { id: 'T09', ac: 'AC4', start: 630, end: 690, expected: false },
+  { id: 'T10', ac: 'AC4', start: 570, end: 690, expected: false },
+  { id: 'T11', ac: 'AC4', start: 615, end: 645, expected: false },
+  { id: 'T12', ac: 'AC4', start: 600, end: 660, expected: false },
+  { id: 'T13', ac: 'AC3', start: 660, end: 720, blocked: true, expected: false },
+  { id: 'T14', ac: 'AC4', start: 630, end: 690, ranges: [], expected: true },
+  { id: 'X1', ac: 'AC1/AC4', start: 541, end: 600, expected: true },
+  { id: 'X2', ac: 'AC1', start: 1380, end: 1440, expected: true },
+
+  // Additional boundary and partition tests.
+  { id: 'B01', ac: 'AC1', start: 539, end: 570, expected: false },
+  { id: 'B02', ac: 'AC1', start: 660, end: 661, expected: true },
+  // Synthetic negative 'now' values isolate the lower-day bound from start > now.
+  // AC1 does not constrain 'now'; remove/revisit ONLY if that input domain is clarified.
+  { id: 'B03', ac: 'AC1', start: -1, end: 30, now: -2, ranges: [], expected: false },
+  { id: 'B04', ac: 'AC1', start: 0, end: 60, now: -1, ranges: [], expected: true },
+  { id: 'B05', ac: 'AC4', start: 570, end: 630, expected: false },
+  { id: 'B06', ac: 'AC4', start: 915, end: 945, ranges: [[600, 660], [900, 960]], expected: false },
+  { id: 'B07', ac: 'AC4', start: 720, end: 780, ranges: [[600, 660], [900, 960]], expected: true },
+];
+
+describe('canBook — AC1–AC5 decision and immutability', () => {
+  it.each(cases)('$id [$ac]: exact decision is $expected; bookings unchanged', (testCase) => {
+    const bookings = freshBookings(testCase.ranges);
+    const beforeValues = bookings.map(({ start, end }) => ({ start, end }));
+    const beforeReferences = bookings.slice();
+
+    const decision = canBook({
+      start: testCase.start,
+      end: testCase.end,
+      now: testCase.now ?? NOW,
+      blocked: testCase.blocked ?? false,
+      bookings,
+    });
+
+    // Exact decision, not merely truthiness.
+    expect(decision).toBe(testCase.expected);
+
+    // Detect additions, deletions, reordering, and value changes.
+    expect(bookings).toStrictEqual(beforeValues);
+
+    // Detect replacement of a booking with a new equal-valued object.
+    expect(bookings).toHaveLength(beforeReferences.length);
+    for (let index = 0; index < bookings.length; index += 1) {
+      expect(bookings[index]).toBe(beforeReferences[index]);
+    }
+  });
+});
+
+// AC5's visible 'Available' / 'Unavailable' text and AC6's layout/feedback
+// require page/component tests. Do NOT mark them covered by this boolean unit test.
+````
 ```
 
 ### 6.3 The final run
