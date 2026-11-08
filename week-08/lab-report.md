@@ -820,7 +820,54 @@ BUG-A is fixed, while BUG-B remains reproducible.
 The change as a diff, then the real output of the **full** suite. Every test must pass.
 
 ```text
-(paste here)
+diff --git a/week-08/app/src/booking.ts b/week-08/app/src/booking.ts
+--- a/week-08/app/src/booking.ts
++++ b/week-08/app/src/booking.ts
+@@ -17,6 +17,5 @@ export function canBook({ start, end, now, blocked, bookings }: {
+     if (start < b.end && end > b.start) return false;
+   }
+   // keep the room's list current with the slot that was just found free
+-  bookings.push({ start, end });
+   return true;
+ }
+
+Targeted BUG-B run:
+
+Test Files  1 passed (1)
+Tests       1 passed | 18 skipped (19)
+
+Final full suite:
+
+RUN  v2.1.9 C:/Users/Asus/Documents/se-practice/week-08/app
+
+✓ src/booking.test.ts (19)
+  ✓ canBook (19)
+    ✓ T01 AC4: touching after an existing booking is allowed
+    ✓ BUG-A: request touching bookings on both sides is allowed
+    ✓ BUG-B: available check does not mutate bookings
+    ✓ T02 AC1: starting exactly at now is rejected
+    ✓ T03 AC1: zero-duration interval is rejected
+    ✓ T04 AC1: reversed interval is rejected
+    ✓ T05 AC1: interval ending after 1440 is rejected
+    ✓ T06 AC2: exactly 120 minutes is allowed
+    ✓ T07 AC2: 121 minutes is rejected
+    ✓ T08 AC4: touching before an existing booking is allowed
+    ✓ T09 AC4: partial overlap is rejected
+    ✓ T10 AC4: interval containing an existing booking is rejected
+    ✓ T11 AC4: interval inside an existing booking is rejected
+    ✓ T12 AC4: identical interval is rejected
+    ✓ T13 AC3: blocked room is rejected
+    ✓ T14 AC4: overlapping time is allowed when there are no bookings
+    ✓ AC5: available check does not change existing bookings
+    ✓ X1 AC1 AC4: one minute after now and touching booking is allowed
+    ✓ X2 AC1: interval ending exactly at 1440 is allowed
+
+Test Files  1 passed (1)
+Tests       19 passed (19)
+Start at    23:14:18
+Duration    474ms (transform 50ms, setup 0ms, collect 76ms, tests 6ms, environment 0ms, prepare 160ms)
+
+Both regression tests and the original Week 07 suite pass after the two minimal fixes.
 ```
 
 ---
