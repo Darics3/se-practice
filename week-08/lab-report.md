@@ -110,7 +110,162 @@ Run them **on the buggy code**. Both must fail here. That is the evidence that e
 its bug.
 
 ```text
-(paste here)
+ RUN  v2.1.9 C:/Users/Asus/Documents/se-practice/week-08/app
+
+ ❯ src/booking.test.ts (19)
+   ❯ canBook (19)
+     × T01 AC4: touching after an existing booking is allowed
+     × BUG-A: request touching bookings on both sides is allowed
+     × BUG-B: available check does not mutate bookings
+     ✓ T02 AC1: starting exactly at now is rejected
+     ✓ T03 AC1: zero-duration interval is rejected
+     ✓ T04 AC1: reversed interval is rejected
+     ✓ T05 AC1: interval ending after 1440 is rejected
+     ✓ T06 AC2: exactly 120 minutes is allowed
+     ✓ T07 AC2: 121 minutes is rejected
+     × T08 AC4: touching before an existing booking is allowed
+     ✓ T09 AC4: partial overlap is rejected
+     ✓ T10 AC4: interval containing an existing booking is rejected
+     ✓ T11 AC4: interval inside an existing booking is rejected
+     ✓ T12 AC4: identical interval is rejected
+     ✓ T13 AC3: blocked room is rejected
+     ✓ T14 AC4: overlapping time is allowed when there are no bookings
+     × AC5: available check does not change existing bookings
+     × X1 AC1 AC4: one minute after now and touching booking is allowed
+     ✓ X2 AC1: interval ending exactly at 1440 is allowed
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/booking.test.ts > canBook > T01 AC4: touching after an existing booking is allowed
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:20:7
+     18|         bookings: freshBookings(),
+     19|       }),
+     20|     ).toBe(true);
+       |       ^
+     21|   });
+     22|    test('BUG-A: request touching bookings on both sides is allowed', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/booking.test.ts > canBook > BUG-A: request touching bookings on both sides is allowed
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:36:7
+     34|         bookings,
+     35|       }),
+     36|     ).toBe(true);
+       |       ^
+     37|   });
+     38|   test('BUG-B: available check does not mutate bookings', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/booking.test.ts > canBook > BUG-B: available check does not mutate bookings
+AssertionError: expected [ { start: 600, end: 660 }, …(2) ] to deeply equal [ { start: 600, end: 660 }, …(1) ]
+
+- Expected
++ Received
+
+  Array [
+    Object {
+      "end": 660,
+      "start": 600,
+    },
+    Object {
+      "end": 960,
+      "start": 900,
+    },
++   Object {
++     "end": 780,
++     "start": 720,
++   },
+  ]
+
+ ❯ src/booking.test.ts:56:20
+     54|   ).toBe(true);
+     55| 
+     56|   expect(bookings).toEqual(before);
+       |                    ^
+     57| });
+     58| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/booking.test.ts > canBook > T08 AC4: touching before an existing booking is allowed
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:141:7
+    139|         bookings: freshBookings(),
+    140|       }),
+    141|     ).toBe(true);
+       |       ^
+    142|   });
+    143| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  src/booking.test.ts > canBook > AC5: available check does not change existing bookings
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:228:7
+    226|         bookings,
+    227|       }),
+    228|     ).toBe(true);
+       |       ^
+    229| 
+    230|     expect(bookings).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  src/booking.test.ts > canBook > X1 AC1 AC4: one minute after now and touching booking is allowed
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/booking.test.ts:242:7
+    240|         bookings: freshBookings(),
+    241|       }),
+    242|     ).toBe(true);
+       |       ^
+    243|   });
+    244| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 13 passed (19)
+   Start at  21:29:06
+   Duration  1.36s (transform 100ms, setup 0ms, collect 100ms, tests 23ms, environment 0ms, prepare 328ms)
 ```
 
 ---
@@ -119,15 +274,10 @@ its bug.
 
 One row per defect. At least **BUG-A and BUG-B**. "Suspected cause" is your hypothesis
 **before** you ask any assistant: the line and why.
-
 | Defect | Test ID | Input | Expected | Actual | Suspected cause (line and why) |
 | --- | --- | --- | --- | --- | --- |
-| BUG-A | | | | | |
-| BUG-B | | | | | |
-| Defect | Test ID | Input | Expected | Actual | Suspected cause (line and why) |
-| --- | --- | --- | --- | --- | --- |
-| BUG-A | T01 / T08 / X1 | A request that only touches an existing booking endpoint | true | false | I suspect the overlap condition uses non-strict comparisons such as `<=` instead of `<`. That would incorrectly treat touching endpoints as an overlap, although AC4 explicitly allows touching. |
-| BUG-B | AC5 | An Available request with an existing `bookings` array | true and `bookings` unchanged | The decision currently fails before the immutability assertion is reached | I suspect `canBook` performs an in-place operation on `bookings`, such as sorting or otherwise modifying the original array. BUG-A currently hides this because AC5 fails on the decision before the unchanged-data assertion runs. |
+| BUG-A | T01 / T08 / X1 | Request only touches an existing booking endpoint | true | false | I suspect the overlap condition uses non-strict comparisons such as `<=` instead of `<`. This would incorrectly treat touching endpoints as an overlap, although AC4 says touching is allowed. |
+| BUG-B | AC5 | Available request with an existing bookings array | true and bookings unchanged | false before the unchanged-bookings assertion is reached | I suspect `canBook` changes the original `bookings` array in place. BUG-A may currently hide this defect because AC5 fails on the availability result before the immutability assertion runs. |
 ---
 
 ## 4. Tasks 2–3 — the skill

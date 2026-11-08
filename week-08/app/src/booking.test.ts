@@ -19,6 +19,43 @@ describe('canBook', () => {
       }),
     ).toBe(true);
   });
+   test('BUG-A: request touching bookings on both sides is allowed', () => {
+    const bookings = [
+      { start: 600, end: 660 },
+      { start: 720, end: 780 },
+    ];
+
+    expect(
+      canBook({
+        start: 660,
+        end: 720,
+        now: NOW,
+        blocked: false,
+        bookings,
+      }),
+    ).toBe(true);
+  });
+  test('BUG-B: available check does not mutate bookings', () => {
+  const bookings = [
+    { start: 600, end: 660 },
+    { start: 900, end: 960 },
+  ];
+
+  const before = bookings.map((booking) => ({ ...booking }));
+
+  expect(
+    canBook({
+      start: 720,
+      end: 780,
+      now: NOW,
+      blocked: false,
+      bookings,
+    }),
+  ).toBe(true);
+
+  expect(bookings).toEqual(before);
+});
+
 
   test('T02 AC1: starting exactly at now is rejected', () => {
     expect(
