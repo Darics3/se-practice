@@ -61,7 +61,48 @@ Duration    6.56s (transform 87ms, setup 0ms, collect 107ms, tests 11ms, environ
 
 You copied the whole `canBook` function from `buggy/booking.ts` (or `.js`) over yours and changed
 nothing else. This is the real output:
+```text
+RUN  v2.1.9 C:/Users/Asus/Documents/se-practice/week-08/app
 
+❯ src/booking.test.ts (17)
+  ❯ canBook (17)
+    × T01 AC4: touching after an existing booking is allowed
+    ✓ T02 AC1: starting exactly at now is rejected
+    ✓ T03 AC1: zero-duration interval is rejected
+    ✓ T04 AC1: reversed interval is rejected
+    ✓ T05 AC1: interval ending after 1440 is rejected
+    ✓ T06 AC2: exactly 120 minutes is allowed
+    ✓ T07 AC2: 121 minutes is rejected
+    × T08 AC4: touching before an existing booking is allowed
+    ✓ T09 AC4: partial overlap is rejected
+    ✓ T10 AC4: interval containing an existing booking is rejected
+    ✓ T11 AC4: interval inside an existing booking is rejected
+    ✓ T12 AC4: identical interval is rejected
+    ✓ T13 AC3: blocked room is rejected
+    ✓ T14 AC4: overlapping time is allowed when there are no bookings
+    × AC5: available check does not change existing bookings
+    × X1 AC1 AC4: one minute after now and touching booking is allowed
+    ✓ X2 AC1: interval ending exactly at 1440 is allowed
+
+Failed Tests 4
+
+FAIL src/booking.test.ts > canBook > T01 AC4: touching after an existing booking is allowed
+AssertionError: expected false to be true
+
+FAIL src/booking.test.ts > canBook > T08 AC4: touching before an existing booking is allowed
+AssertionError: expected false to be true
+
+FAIL src/booking.test.ts > canBook > AC5: available check does not change existing bookings
+AssertionError: expected false to be true
+
+FAIL src/booking.test.ts > canBook > X1 AC1 AC4: one minute after now and touching booking is allowed
+AssertionError: expected false to be true
+
+Test Files  1 failed (1)
+Tests       4 failed | 13 passed (17)
+Start at    20:41:45
+Duration    1.10s (transform 84ms, setup 0ms, collect 103ms, tests 12ms, environment 0ms, prepare 646ms)
+```
 ### 2.3 One failing test per bug
 
 Add the two regression tests from README Part 1, step 5: one named `BUG-A` and one named `BUG-B`.
@@ -83,7 +124,10 @@ One row per defect. At least **BUG-A and BUG-B**. "Suspected cause" is your hypo
 | --- | --- | --- | --- | --- | --- |
 | BUG-A | | | | | |
 | BUG-B | | | | | |
-
+| Defect | Test ID | Input | Expected | Actual | Suspected cause (line and why) |
+| --- | --- | --- | --- | --- | --- |
+| BUG-A | T01 / T08 / X1 | A request that only touches an existing booking endpoint | true | false | I suspect the overlap condition uses non-strict comparisons such as `<=` instead of `<`. That would incorrectly treat touching endpoints as an overlap, although AC4 explicitly allows touching. |
+| BUG-B | AC5 | An Available request with an existing `bookings` array | true and `bookings` unchanged | The decision currently fails before the immutability assertion is reached | I suspect `canBook` performs an in-place operation on `bookings`, such as sorting or otherwise modifying the original array. BUG-A currently hides this because AC5 fails on the decision before the unchanged-data assertion runs. |
 ---
 
 ## 4. Tasks 2–3 — the skill
