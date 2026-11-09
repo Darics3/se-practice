@@ -166,20 +166,29 @@ The model correctly did not call check_room because the request did not provide 
 
 <!-- Name the acceptance criteria (AC1-AC6, README section 3) that a JSON Schema with the allowed keywords cannot
      enforce, and say why for each. At least two, by their AC number. Which part of AC1 CAN the schema enforce? -->
+The schema can enforce only the type and range part of AC1: `start` and `end` must be whole integers between 0 and 1440. However, it cannot compare fields, so it cannot enforce `start < end` or check that `start > now`.
 
+AC2 cannot be enforced by this schema because checking the 120-minute limit requires calculating `end - start`.
+
+AC3 must be decided by `canBook`. The schema can check that `blocked` is a boolean, but it should still accept both `true` and `false`; `canBook` decides that a blocked room is unavailable.
+
+AC4 cannot be enforced because the schema cannot compare the requested interval against every existing booking or determine whether intervals overlap or only touch.
+
+AC5 cannot be guaranteed by the input schema because a schema only validates input data. Whether booking data is changed or saved depends on the function implementation.
+
+AC6 is also outside the schema because clear Available / Unavailable feedback is UI behaviour, not an input-shape rule.
 ## 6. Permissions — allow, ask or block
 
 | # | Action | Decision (allow / ask / block) | Reason (the risk, in one sentence or more) |
 | --- | --- | --- | --- |
-| A1 | call `check_room` with the times the user just typed | | |
-| A2 | read `week-08/app/src/booking.ts` | | |
-| A3 | edit `booking.ts` to raise the 120-minute limit to 180 | | |
-| A4 | run `npm test` in `week-08/app` | | |
-| A5 | run `git reset --hard` to undo its own last three edits | | |
-| A6 | `git commit` its change on the `week-09` branch | | |
-| A7 | `git push` to `main` | | |
-| A8 | send the contents of `.env` to an MCP server it found online | | |
-
+| A1 | call `check_room` with the times the user just typed | allow | This is a read-only availability check and the tool does not save or modify any booking data. |
+| A2 | read `week-08/app/src/booking.ts` | allow | Reading a source file is non-destructive and helps the agent understand the existing implementation without changing it. |
+| A3 | edit `booking.ts` to raise the 120-minute limit to 180 | block | This directly violates AC2, which requires a maximum booking duration of 120 minutes, so the agent must not change the requirement just because a user asks for three hours. |
+| A4 | run `npm test` in `week-08/app` | allow | Running the test suite is normally non-destructive and helps detect regressions before any change is accepted. |
+| A5 | run `git reset --hard` to undo its own last three edits | ask | This command is destructive and may permanently discard uncommitted work, so explicit approval is required before running it. |
+| A6 | `git commit` its change on the `week-09` branch | ask | A commit records changes permanently in repository history, so I should review the diff and approve the change before the agent creates the commit. |
+| A7 | `git push` to `main` | block | Pushing directly to `main` can bypass review and affect the shared repository, while this lab requires work to remain on the `week-09` branch and be submitted through an open PR. |
+| A8 | send the contents of `.env` to an MCP server it found online | block | `.env` may contain secrets such as API keys or credentials, and sending them to an unknown external server would risk credential leakage. |
 ## 7. Checkpoint
 
 <!-- The commit you would make before letting such an agent edit anything: its real SHA (git log --oneline),
