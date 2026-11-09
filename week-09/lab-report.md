@@ -193,13 +193,53 @@ AC6 is also outside the schema because clear Available / Unavailable feedback is
 
 <!-- The commit you would make before letting such an agent edit anything: its real SHA (git log --oneline),
      the exact command that returns you to it, and what that command would throw away. -->
+Before allowing the agent to edit anything, I would use commit `6dd4a6f` as my checkpoint.
 
+To return to this checkpoint, I would run:
+
+```bash
+git reset --hard 6dd4a6f
+```
+
+This command moves the current branch back to that commit and discards tracked changes made after the checkpoint. It also discards uncommitted changes to tracked files in the working tree and index. Untracked files are not removed by `git reset --hard` itself.
 ## 8. Checker output
 
 Paste the **whole** output of your last `python tests/check_tool.py`, unedited.
 
 ```text
+PASS  D1    tool/check_room.json exists and is valid JSON
+PASS  D2    has name, description and inputSchema
+PASS  D3    name is exactly "check_room"
+PASS  D4    description: 25+ words, says minutes, 1440, and that it does not save
+PASS  D5    inputSchema: an object with exactly the five fields, all required
+PASS  D6    inputSchema uses only the keywords listed in README section 5
+PASS  S01   the R1 call, valid -> accept
+PASS  S02   no existing bookings: bookings = [] -> accept
+PASS  S03   end as a string: "11:00" -> refuse
+PASS  S04   now missing -> refuse
+PASS  S05   an extra field: "room": "204" -> refuse
+PASS  S06   start below the day: -30 -> refuse
+PASS  S07   end beyond the day: 1500 -> refuse
+PASS  S08   a booking with no end: {start: 660} -> refuse
+PASS  S09   blocked as a string: "false" -> refuse
+PASS  S10   start not a whole minute: 600.5 -> refuse
+PASS  S11   end at the end of the day: 1440 -> accept
+PASS  S12   a booking as a pair: [660, 720] -> refuse
+PASS  F1    calls\r1.json: a call to check_room
+PASS  F2    calls\r1.json: arguments valid against your schema
+PASS  F3    calls\r1.json: arguments equal the expected ones (README section 5, Part 2)
+PASS  F4    calls\r2.json: a call to check_room
+PASS  F5    calls\r2.json: arguments valid against your schema
+PASS  F6    calls\r2.json: arguments equal the expected ones (README section 5, Part 2)
+PASS  F7    calls/r3: exactly one of r3.json (it called) or r3.txt (it asked), not empty
+PASS  L1    section 5 names at least two acceptance criteria (AC1-AC6) the schema cannot check
+PASS  L2    section 6: A1-A8 each have allow / ask / block and a reason of 5+ words
+PASS  L3    section 7 names the checkpoint commit (a SHA)
+PASS  L4    section 10: a conclusion of 80-150 words
+PASS  L5    AI_USAGE.md filled in (a tool row, and signed)
 
+SUMMARY: 30 PASS · 0 FAIL · 0 ERROR  (of 30 checks)
+Paste this whole output into lab-report.md section 8, and these three numbers into submission.yml.
 ```
 
 ## 9. What still fails
@@ -210,3 +250,4 @@ Paste the **whole** output of your last `python tests/check_tool.py`, unedited.
 
 <!-- What did you learn about the line between the schema, the model and the function? Be specific:
      name a case, a request or an action. "Tool definitions are important" is worth nothing. -->
+This practice helped me understand that the schema, the model, and the function have different responsibilities. The schema checks the shape of a tool call, such as requiring integer minutes between 0 and 1440, but it cannot decide whether `start < end` or whether two bookings overlap. Those rules belong to `canBook`. In R2, the model correctly called `check_room` even though `blocked` was true, because deciding Unavailable is the function's responsibility. R3 showed another limitation: the model did not invent missing values and asked a clarification question instead. The permissions exercise also showed that having access to a tool or repository does not mean an agent should be allowed to perform every action, especially destructive commands, direct pushes to `main`, or leaking `.env` secrets.
