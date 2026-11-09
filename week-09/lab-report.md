@@ -15,7 +15,7 @@ them. Replace every `<!-- comment -->` with your own text (comments are ignored 
 | --- | --- |
 | Assistant (frozen for the whole lab) | ChatGPT |
 | Exact model (or "not displayed") | GPT-5.6 Sol |
-| Three fresh chats for R1, R2, R3? (yes / no) | no |
+| Three fresh chats for R1, R2, R3? (yes / no) | yes |
 | Python version (`python --version`) | Python 3.13.1 |
 
 ## 2. Your tool definition — a reason for every constraint
@@ -141,27 +141,27 @@ For each request, paste the model's reply exactly, then judge it against the req
 ### R1
 
 ```text
-
+{"name":"check_room","arguments":{"start":600,"end":660,"now":540,"blocked":false,"bookings":[{"start":660,"end":720}]}}
 ```
 
 <!-- Match? If F3 failed, which argument differs, and who was wrong: the model or the request? -->
-
+Match: yes. The model converted all times correctly: 9:00 to 540, 10:00 to 600, 11:00 to 660, and 12:00 to 720. It used the correct tool name, set blocked to false, and represented the existing booking correctly.
 ### R2
 
 ```text
-
+{"name":"check_room","arguments":{"start":840,"end":990,"now":810,"blocked":true,"bookings":[]}}
 ```
 
 <!-- Same. R2 is a call that SHOULD be made, although canBook will say Unavailable. Did the model refuse to call? -->
-
+Match: yes. The model converted 13:30 to 810, 14:00 to 840, and 16:30 to 990 correctly. It also set blocked to true and used an empty bookings list. The model correctly called check_room instead of deciding availability itself. canBook will later return Unavailable because the room is blocked.
 ### R3
 
 ```text
-
+What exact start and end times tomorrow afternoon would you like, and is the room blocked or already booked during that period?
 ```
 
 <!-- What information was missing? Did the model ask, or call? If it called, which values did it invent, and from where? -->
-
+The model correctly did not call check_room because the request did not provide enough information. The exact start and end times were missing, and the blocked status and existing bookings were also not fully specified. However, the clarification was still incomplete because it did not ask for the current time (now), which is also a required argument. It also asked whether the room was already booked, but the tool requires the actual existing booking intervals if any exist. No values were invented.
 ## 5. What the schema cannot check
 
 <!-- Name the acceptance criteria (AC1-AC6, README section 3) that a JSON Schema with the allowed keywords cannot
