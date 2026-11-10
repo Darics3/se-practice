@@ -1,25 +1,41 @@
 import { Calendar, Clock, Users, AlertCircle, CheckCircle2, XCircle, Ban, MapPin } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { rooms, bookings } from './sampleData';
-import { checkAvailability, timeToMinutes, minutesToTime, formatDuration, overlapsExisting } from './bookingLogic';
 import type { CheckResult } from './types';
-import { canBook } from './booking';
+import { ROOMS, type RoomBooking } from './rooms';
+import { filterRooms } from './filter';
+import { checkRoom } from './booking';
+import { checkAvailability, timeToMinutes, minutesToTime, formatDuration } from './bookingLogic';
 
 export default function App() {
   const [roomId, setRoomId] = useState('');
   const [startTime, setStartTime] = useState('');
+  const [attendees, setAttendees] = useState(1);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [endTime, setEndTime] = useState('');
   const [currentTime, setCurrentTime] = useState(() => {
     const now = new Date();
     return now.getHours() * 60 + now.getMinutes();
   });
   const [result, setResult] = useState<CheckResult | null>(null);
+  const filteredRooms = useMemo(
+  () =>
+    filterRooms(ROOMS, {
+      attendees,
+      equipment: selectedEquipment,
+    }),
+  [attendees, selectedEquipment],
+);
 
-  const selectedRoom = useMemo(() => rooms.find((r) => r.id === roomId), [roomId]);
-  const roomBookings = useMemo(
-    () => (roomId ? bookings.filter((b) => b.roomId === roomId).sort((a, b) => a.start - b.start) : []),
-    [roomId],
-  );
+const selectedRoom = useMemo(
+  () => filteredRooms.find((room) => room.id === roomId),
+  [filteredRooms, roomId],
+);
+
+const roomBookings = useMemo(
+  () => (selectedRoom ? [...selectedRoom.bookings].sort((a, b) => a.start - b.start) : []),
+  [selectedRoom],
+);
+
 
 function handleSubmit(e: React.FormEvent) {
   e.preventDefault();
@@ -36,13 +52,11 @@ function handleSubmit(e: React.FormEvent) {
     return;
   }
 
-  const available = canBook({
-    start: startMin,
-    end: endMin,
-    now: currentTime,
-    blocked: selectedRoom.blocked,
-    bookings: roomBookings,
-  });
+  const available = checkRoom(ROOMS, roomId, {
+  start: startMin,
+  end: endMin,
+  now: currentTime,
+});
 
   if (available) {
     setResult({ available: true });
@@ -96,7 +110,7 @@ function handleSubmit(e: React.FormEvent) {
                   className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-white"
                 >
                   <option value="">— Choose a room —</option>
-                  {rooms.map((r) => (
+                  {filteredRooms.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name} ({r.location}){r.blocked ? ' — Blocked' : ''}
                     </option>
@@ -313,7 +327,7 @@ function Timeline({
   endTime,
   currentTime,
 }: {
-  roomBookings: { id: string; start: number; end: number; title: string }[];
+  roomBookings: RoomBooking[];
   startTime: string;
   endTime: string;
   currentTime: number;

@@ -1,4 +1,5 @@
-import type { Room, Booking, CheckResult } from './types';
+import type { Room, RoomBooking } from './rooms';
+import type { CheckResult } from './types';
 
 export function timeToMinutes(time: string): number | null {
   const match = /^(\d{2}):(\d{2})$/.exec(time);
@@ -23,7 +24,11 @@ export function formatDuration(min: number): string {
   return `${h} hr ${m} min`;
 }
 
-export function overlapsExisting(start: number, end: number, existing: Booking[]): Booking | null {
+export function overlapsExisting(
+  start: number,
+  end: number,
+  existing: RoomBooking[],
+): RoomBooking | null {
   return existing.find((b) => start < b.end && b.start < end) ?? null;
 }
 
@@ -31,7 +36,7 @@ export function checkAvailability(
   startMin: number,
   endMin: number,
   room: Room | undefined,
-  roomBookings: Booking[],
+  roomBookings: RoomBooking[],
   currentTime: number,
 ): CheckResult {
   // AC1: interval must satisfy 0 ≤ start < end ≤ 1440 and start > currentTime

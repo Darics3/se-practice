@@ -4,12 +4,17 @@
 
 import type { Room } from './rooms';
 
+export type ExistingBooking = {
+  start: number;
+  end: number;
+};
+
 export function canBook({ start, end, now, blocked, bookings }: {
   start: number;
   end: number;
   now: number;
   blocked: boolean;
-  bookings: { start: number; end: number }[];
+  bookings: ExistingBooking[];
 }): boolean {
   if (!(0 <= start && start < end && end <= 1440)) return false;
   if (!(start > now)) return false;
@@ -23,7 +28,6 @@ export function canBook({ start, end, now, blocked, bookings }: {
   // keep the room's list current with the slot that was just found free
   return true;
 }
-
 export function checkRoom(
   rooms: Room[],
   roomId: string,
