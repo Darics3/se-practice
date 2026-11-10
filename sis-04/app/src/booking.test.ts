@@ -8,7 +8,7 @@ function freshBookings(): ExistingBooking[] {
 }
 
 describe('canBook', () => {
-  test('T01 AC4: touching after an existing booking is allowed', () => {
+  test('T01 B3 AC4: touching after an existing booking is allowed', () => {
     expect(
       canBook({
         start: 660,
@@ -105,7 +105,7 @@ describe('canBook', () => {
     ).toBe(false);
   });
 
-  test('T06 AC2: exactly 120 minutes is allowed', () => {
+  test('T06 B1 AC2: exactly 120 minutes is allowed', () => {
     expect(
       canBook({
         start: 720,
@@ -117,7 +117,7 @@ describe('canBook', () => {
     ).toBe(true);
   });
 
-  test('T07 AC2: 121 minutes is rejected', () => {
+  test('T07 B2 AC2: 121 minutes is rejected', () => {
     expect(
       canBook({
         start: 720,
@@ -141,7 +141,7 @@ describe('canBook', () => {
     ).toBe(true);
   });
 
-  test('T09 AC4: partial overlap is rejected', () => {
+  test('T09 B4 AC4: partial overlap is rejected', () => {
     expect(
       canBook({
         start: 630,
