@@ -24,54 +24,5 @@ export function formatDuration(min: number): string {
   return `${h} hr ${m} min`;
 }
 
-export function overlapsExisting(
-  start: number,
-  end: number,
-  existing: RoomBooking[],
-): RoomBooking | null {
-  return existing.find((b) => start < b.end && b.start < end) ?? null;
-}
 
-export function checkAvailability(
-  startMin: number,
-  endMin: number,
-  room: Room | undefined,
-  roomBookings: RoomBooking[],
-  currentTime: number,
-): CheckResult {
-  // AC1: interval must satisfy 0 ≤ start < end ≤ 1440 and start > currentTime
-  if (startMin < 0 || endMin > 1440) {
-    return { available: false, reason: 'Time must be within 00:00–24:00.' };
-  }
-  if (startMin >= endMin) {
-    return { available: false, reason: 'Start time must be before end time.' };
-  }
-  if (startMin <= currentTime) {
-    return { available: false, reason: 'Start time must be after the current time.' };
-  }
 
-  // AC2: reject booking longer than 120 minutes
-  if (endMin - startMin > 120) {
-    return { available: false, reason: 'Bookings cannot be longer than 120 minutes.' };
-  }
-
-  // AC3: reject if room is blocked
-  if (!room) {
-    return { available: false, reason: 'Please select a room.' };
-  }
-  if (room.blocked) {
-    return { available: false, reason: `${room.name} is blocked — ${room.blockedReason ?? 'unavailable'}.` };
-  }
-
-  // AC4: reject overlapping intervals (touching endpoints allowed)
-  const conflict = overlapsExisting(startMin, endMin, roomBookings);
-  if (conflict) {
-    return {
-      available: false,
-      reason: `Overlaps "${conflict.title}" (${minutesToTime(conflict.start)}–${minutesToTime(conflict.end)}).`,
-    };
-  }
-
-  // AC5: decision only — data is not modified
-  return { available: true };
-}

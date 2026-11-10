@@ -4,7 +4,8 @@ import type { CheckResult } from './types';
 import { ROOMS, type RoomBooking } from './rooms';
 import { filterRooms } from './filter';
 import { checkRoom } from './booking';
-import { checkAvailability, timeToMinutes, minutesToTime, formatDuration } from './bookingLogic';
+import { timeToMinutes, minutesToTime, formatDuration } from './bookingLogic';
+
 const EQUIPMENT_OPTIONS = ['projector', 'whiteboard', 'microphone', 'video', '3d-printer'];
 export default function App() {
   const [roomId, setRoomId] = useState('');
@@ -58,11 +59,14 @@ function handleSubmit(e: React.FormEvent) {
   now: currentTime,
 });
 
-  if (available) {
-    setResult({ available: true });
-  } else {
-    setResult(checkAvailability(startMin, endMin, selectedRoom, roomBookings, currentTime));
-  }
+if (available) {
+  setResult({ available: true });
+} else {
+  setResult({
+    available: false,
+    reason: 'The selected room is unavailable for this time slot.',
+  });
+}
 }
   function handleReset() {
     setRoomId('');
