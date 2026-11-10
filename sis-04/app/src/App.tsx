@@ -5,7 +5,7 @@ import { ROOMS, type RoomBooking } from './rooms';
 import { filterRooms } from './filter';
 import { checkRoom } from './booking';
 import { checkAvailability, timeToMinutes, minutesToTime, formatDuration } from './bookingLogic';
-
+const EQUIPMENT_OPTIONS = ['projector', 'whiteboard', 'microphone', 'video', '3d-printer'];
 export default function App() {
   const [roomId, setRoomId] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -98,14 +98,71 @@ function handleSubmit(e: React.FormEvent) {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Room selector */}
+              <div>
+  <label
+    htmlFor="attendees"
+    className="block text-sm font-medium text-slate-700 mb-1.5"
+  >
+    Attendees
+  </label>
+
+  <input
+    id="attendees"
+    type="number"
+    min="1"
+    value={attendees}
+    onChange={(e) => {
+      const value = Math.max(1, Number(e.target.value) || 1);
+      setAttendees(value);
+      setRoomId('');
+      setResult(null);
+    }}
+    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+  />
+</div>
+<div>
+  <p className="block text-sm font-medium text-slate-700 mb-2">
+    Required Equipment
+  </p>
+
+  <div className="flex flex-wrap gap-2">
+    {EQUIPMENT_OPTIONS.map((item) => (
+      <label
+        key={item}
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs bg-white"
+      >
+        <input
+          type="checkbox"
+          checked={selectedEquipment.includes(item)}
+          onChange={(e) => {
+            setSelectedEquipment((current) =>
+              e.target.checked
+                ? [...current, item]
+                : current.filter((value) => value !== item),
+            );
+            setRoomId('');
+            setResult(null);
+          }}
+        />
+
+        {item}
+      </label>
+    ))}
+  </div>
+</div>
               <div>
                 <label htmlFor="room" className="block text-sm font-medium text-slate-700 mb-1.5">
                   Select Room
                 </label>
+                {filteredRooms.length === 0 && (
+  <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+    No rooms match the selected capacity and equipment.
+  </div>
+)}
                 <select
                   id="room"
                   value={roomId}
+                  disabled={filteredRooms.length === 0}
                   onChange={(e) => { setRoomId(e.target.value); setResult(null); }}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-white"
                 >
