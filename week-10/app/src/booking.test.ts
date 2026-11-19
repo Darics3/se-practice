@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { canBook, type ExistingBooking } from './booking';
+import { checkAvailability } from './bookingLogic';
+import { rooms } from './sampleData';
 
 const NOW = 540;
 
@@ -253,4 +255,28 @@ describe('canBook', () => {
       }),
     ).toBe(true);
   });
+  test('R1 correctness: checkAvailability rejects the same invalid numeric start as canBook', () => {
+  const start = Number.NaN;
+  const end = 700;
+  const now = 500;
+  const room = rooms[0];
+
+  const coreResult = canBook({
+    start,
+    end,
+    now,
+    blocked: room.blocked,
+    bookings: [],
+  });
+
+  const uiResult = checkAvailability(
+    start,
+    end,
+    room,
+    [],
+    now,
+  ).available;
+
+  expect(uiResult).toBe(coreResult);
+});
 });
