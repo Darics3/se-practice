@@ -205,19 +205,19 @@ categories. **Score = L × I.** **Component** is a path inside `app/` or `missin
 
 | ID | Category | Cause → event → consequence | Component | Evidence | Status | L | I | Score | Mitigation | Owner | Verification |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| R1 | | | | | | | | | | | |
-| R2 | | | | | | | | | | | |
-| R3 | | | | | | | | | | | |
-| R4 | | | | | | | | | | | |
-| R5 | | | | | | | | | | | |
+| R1 | Maintainability | Availability rules are implemented independently in two modules → one implementation can change without the other → UI and core booking decisions may drift and produce inconsistent results. | `src/bookingLogic.ts` | I inspected `canBook()` in `src/booking.ts` and `checkAvailability()` / `overlapsExisting()` in `src/bookingLogic.ts`; both independently implement AC1–AC4, including the overlap rule. | confirmed | 3 | 3 | 9 | Add a regression test and refactor the duplicated availability decision into one small pure decision path used by the existing functions. | me | The R1 regression test fails before the refactor, then the full Vitest suite passes after the refactor and the approved diff contains no unrelated changes. |
+| R2 | Agent operations | The playbook contains incorrect and unsafe project instructions → an agent may follow them literally → correct booking behavior can regress or forbidden scope such as real data, login/database or deployment can be introduced. | `AGENTS.md` | I read `AGENTS.md`: it says endpoint touching is overlap, requests real KBTU timetable data, permits Supabase/login, names a missing `test:unit` command and instructs Netlify deployment. | confirmed | 3 | 3 | 9 | Apply a minimal approved patch to `AGENTS.md` so it states the six required constraints and only real project commands. | me | Review `git diff app/AGENTS.md`, keep the patch within 1–14 changed lines, run the checker and confirm every named command exists. |
+| R3 | Reliability | `AGENTS.md` names a test script that is absent → an agent attempts the command and cannot perform the prescribed verification → acceptance may be delayed or verification may be skipped. | `missing: npm run test:unit` | I ran `npm run test:unit` and received `Missing script: "test:unit"`. `package.json` has `test: "vitest run"` but no `test:unit` script. | confirmed | 2 | 2 | 4 | Replace the invalid command in the approved `AGENTS.md` patch with the existing `npm test` command. | me | Run the command named in the patched playbook and confirm it executes the Vitest suite successfully. |
+| R4 | Security | Installed dependencies contain reported vulnerabilities → a vulnerable dependency could be reachable in the project → security or supply-chain exposure may exist. | `package-lock.json` | `npm install` reported 24 vulnerabilities: 2 low, 7 moderate, 13 high and 2 critical. I have not yet verified which are runtime-exploitable. | plausible | 2 | 3 | 6 | Inspect `npm audit` before changing dependencies; do not apply a forced dependency upgrade without reviewing compatibility and scope. | me | Review the audit paths and determine whether affected packages are runtime or development dependencies; rerun tests/build after any approved dependency change. |
+| R5 | Maintainability | There is no automated page/integration test → UI wiring can regress while `canBook()` unit tests remain green → a visible failure may not be detected automatically. | `missing: automated UI/integration test for App.tsx` | I listed all test/spec files under `app/src`; only `src/booking.test.ts` exists and there is no test that renders or integrates `App.tsx`. | confirmed | 2 | 2 | 4 | Keep the required manual desktop/mobile checks as evidence and consider adding an integration test in future work without expanding this task's scope. | me | Verify the page manually at desktop and mobile widths and save `evidence/ui-desktop.png` and `evidence/ui-mobile.png`. |
 
 ### 4.2 The top two for action
 
 Two confirmed risks, highest score first, each with the evidence that justifies its score.
 
-1. **R?** —
-2. **R?** —
+1. **R1** — Score **3 × 3 = 9**. The risk is confirmed because I opened both `src/booking.ts` and `src/bookingLogic.ts` and found that AC1–AC4 are implemented independently in both decision paths. Because availability is core application behavior, rule drift could produce a serious incorrect result.
 
+2. **R2** — Score **3 × 3 = 9**. The risk is confirmed directly in `app/AGENTS.md`: the playbook contradicts the endpoint-touching rule, names a missing test command, requests real timetable data, permits login/database work and instructs external deployment. An agent is likely to follow this file, so the likelihood and impact are both high.
 ---
 
 ## 5. Task 5 — the agent-readiness audit
@@ -229,28 +229,30 @@ what is missing.
 
 | Row | What | yes / no | Evidence |
 | --- | --- | --- | --- |
-| 1a | Formatter | | |
-| 1b | Linter | | |
-| 1c | Type checks | | |
-| 1d | Unit tests | | |
-| 1e | Pinned dependencies (lockfile) | | |
-| 2a | `.env.example` | | |
-| 2b | Architecture notes | | |
-| 2c | `AGENTS.md` | | |
-| 3a | CI | | |
-| 3b | Pre-commit hooks | | |
-| 3c | Integration checks | | |
-| 3d | Reviewable evidence | | |
+| 1a | Formatter | no | There is no Prettier configuration and `prettier` is not listed in `app/package.json`. |
+| 1b | Linter | yes | `app/eslint.config.js` exists and `eslint` is listed in `package.json`; `npm run lint` also exists. |
+| 1c | Type checks | yes | `app/tsconfig.json` exists and `typescript` is listed in `package.json`. The project also has a `typecheck` script. |
+| 1d | Unit tests | yes | `src/booking.test.ts` exists and `vitest` is listed in `package.json`. Baseline: 19/19 tests passed. |
+| 1e | Pinned dependencies (lockfile) | yes | `app/package-lock.json` is committed. |
+| 2a | `.env.example` | no | There is no `.env.example` in `app/`. |
+| 2b | Architecture notes | yes | `app/AGENTS.md` documents the important project modules, including `src/booking.ts`, `src/App.tsx` and `src/booking.test.ts`. |
+| 2c | `AGENTS.md` | yes | `app/AGENTS.md` exists. |
+| 3a | CI | no | There is no CI workflow under `app/.github/workflows/` that runs checks on every push. |
+| 3b | Pre-commit hooks | no | There is no `.husky/`, `.pre-commit-config.yaml`, `lint-staged` or `simple-git-hooks` configuration in `app/`. |
+| 3c | Integration checks | no | The only automated test file is `src/booking.test.ts`; there is no page or multi-module integration test. |
+| 3d | Reviewable evidence | no | There is no CI log requirement or PR template in `app/` requiring test evidence for an agent's change. |
 
 ### 5.2 The level and the gaps
 
-**Level:** (0, 1, 2 or 3 — by the 80% rule)
+**Level:** 1
 
 **Missing evidence for the next level:**
 
-<!-- Name the rows and what would have to exist. Then one or two lines on the README's accuracy
-     and the folder layout. -->
--
+- Row `2a`: the project would need an `.env.example` file to satisfy all three Level 2 rows.
+- Level 2 currently has architecture documentation and `AGENTS.md`, but without `.env.example` it reaches only 2 of 3 rows and therefore does not meet the required 80% threshold.
+- The repository documentation is partly inaccurate because `AGENTS.md` names a non-existent `npm run test:unit` command and contains project rules that conflict with the actual contract.
+- The folder layout is reasonably clear: source code is under `app/src/`, tests are alongside the booking module, and the agent playbook is at `app/AGENTS.md`.
+
 
 ---
 
@@ -261,13 +263,75 @@ what is missing.
 What you sent, exactly (the deck's prompt):
 
 ```text
-(paste here)
+Review AGENTS.md and project documentation only. Compare them with these constraints: one fictional room; no login/database; preserve AC1–AC6; no secrets; no external deployments; run tests before proposing acceptance. Report missing or conflicting rules. Draft a minimal patch to AGENTS.md, but wait for my approval before applying it.
 ```
 
 The assistant's answer, pasted unedited:
 
 ```text
-(paste here)
+I reviewed only `AGENTS.md` and the Week 10 project documentation. I did not edit any files.
+
+The current playbook has several conflicting or missing rules:
+
+| Finding | Decision | Reason |
+|---|---|---|
+| It says to use real KBTU room names and timetable data. | **Approve change** | The project scope requires one fictional room with fictional bookings. |
+| AC4 says endpoint touching counts as overlap. | **Approve change** | The real AC4 requires touching endpoints to be allowed. |
+| AC6 is missing. | **Approve change** | The contract requires clear UI feedback on desktop and mobile. |
+| It names `npm run test:unit`. | **Approve change** | The recorded baseline showed that this command does not exist; `npm test` is the real test command. |
+| It permits Supabase persistence and a login page. | **Approve change** | The project explicitly prohibits login and databases. |
+| It does not prohibit secrets. | **Approve change** | The project requires no keys, passwords, tokens, `.env` files, or personal data. |
+| It tells the agent to deploy with Netlify. | **Approve change** | External production deployment is prohibited. |
+| It only asks the agent to check that the page loads before finishing. | **Modify** | Tests must run and pass before proposing acceptance, while still checking that the page loads. |
+
+### Proposed minimal patch
+
+I would keep every existing heading and make only the following small changes:
+
+diff id="ff8k3u"
+ ## Project
+
+ A React + TypeScript page (Vite) that tells a student whether a campus room is free for a
+ requested time. The booking rule lives in `src/booking.ts` (`canBook`); the page is `src/App.tsx`;
+ the tests are in `src/booking.test.ts`.
+
+-For realism, use real room names and the real timetable from the KBTU portal.
++Use one fictional room with fictional bookings. Do not introduce real personal or timetable data.
+
+ ## Acceptance contract
+
+ - AC1 Reject start ≥ end and requests in the past.
+ - AC2 Enforce the maximum allowed duration (120 minutes).
+ - AC3 Reject a blocked room.
+-- AC4 Reject overlaps. A request that touches a booking at an endpoint also counts as an overlap.
++- AC4 Reject overlaps; allow requests that only touch an existing booking at an endpoint.
+ - AC5 Return Available / Unavailable without changing booking data.
++- AC6 Preserve clear UI feedback on desktop and mobile.
+
+ ## Commands
+
+ - Install: `npm install`
+ - Dev server: `npm run dev`
+-- Tests: `npm run test:unit`
++- Tests: `npm test`
+ - Build: `npm run build`
+
+ ## You may
+
+ - Edit any file in the project.
+ - Add packages when a task needs them.
+-- If bookings need to persist, add a small Supabase table and a login page.
++- Do not add login, databases, secrets, credentials, API keys, passwords, tokens or `.env` files.
+
+ ## Before you finish
+
+-- Make sure the page still loads.
+-- When the build passes, publish a preview with `npx netlify deploy --prod` so the team can see it.
++- Run the tests and require them to pass before proposing acceptance; also make sure the page still loads.
++- Do not deploy the project to any external or production service.
+
+
+This patch keeps the original headings, changes only the incorrect or missing operational rules, introduces no new project feature, and remains within the required minimal-patch size. I have **not applied it** and would wait for your approval before changing `AGENTS.md`.
 ```
 
 ### 6.2 Findings and my decisions
@@ -277,17 +341,35 @@ One row per missing or conflicting rule the answer reported, plus any it missed.
 
 | # | Rule or line in AGENTS.md | Missing / conflicting | Decision | Why |
 | --- | --- | --- | --- | --- |
-| 1 | | | | |
-| 2 | | | | |
-| 3 | | | | |
-| 4 | | | | |
+| 1 | Use real KBTU room names and timetable data | conflicting | approve | The project requires fictional room data and should not introduce real institutional timetable data. |
+| 2 | AC4 says endpoint touching counts as overlap | conflicting | approve | The actual AC4 allows endpoint touching; existing tests confirm this behavior. |
+| 3 | AC6 is missing | missing | approve | The contract requires clear responsive feedback on desktop and mobile. |
+| 4 | Tests: `npm run test:unit` | conflicting | approve | The command does not exist. `npm test` is the real working test command. |
+| 5 | Supabase persistence and login are allowed | conflicting | approve | Login and databases are outside the project scope. |
+| 6 | No explicit rule prohibiting secrets | missing | approve | The project must not introduce credentials, API keys, passwords, tokens or `.env` secrets. |
+| 7 | Deploy with Netlify after build | conflicting | approve | External deployment is outside the allowed scope. |
+| 8 | Only check that the page loads before finishing | missing / incomplete | modify | Keep the page-load check, but also require the tests to pass before proposing acceptance. |
 
 ### 6.3 The approved patch
 
 `git diff app/AGENTS.md`, after you applied only what you approved:
 
 ```text
-(paste here)
+I reviewed the proposed patch before applying it and approved only the changes that directly corrected the identified playbook risks.
+
+The final `git diff app/AGENTS.md` changes 13 lines, which is within the required 1–14 line limit. All existing headings are preserved.
+
+The approved patch:
+
+- replaces the instruction to use real KBTU timetable data with fictional room data;
+- corrects AC4 so endpoint touching is allowed;
+- adds the missing AC6 responsive-feedback rule;
+- replaces the non-existent `npm run test:unit` command with the real `npm test` command;
+- removes permission to add Supabase/login and explicitly prohibits secrets;
+- removes external Netlify deployment;
+- requires tests to pass before proposing acceptance.
+
+No unrelated code or project files were changed as part of this playbook patch.
 ```
 
 ---
