@@ -1,8 +1,8 @@
 # Week 10 — Lab report
 
-**Name:**
-**Group:**
-**Date:**
+**Name:** Izbassarov Darkhan
+**Group:** Monday 16:00-19:00
+**Date:** 19-11-2026
 
 Fill in every section. **Do not delete, rename or renumber the headings.** The checker and the
 grader find your answers by them. You can add rows to any table, but never remove its header.
@@ -13,13 +13,13 @@ grader find your answers by them. You can add rows to any table, but never remov
 
 | | |
 | --- | --- |
-| Assistant I reviewed with (tool) | |
-| Exact model (with its version, or `not displayed`) | |
-| Where the assistant read the project (Bolt.new / Claude Code / Cursor / Copilot / chat with pasted files) | |
-| Starting point (`week-08` or `week-07`) | |
-| Baseline commit — the checkpoint of Part 0 | |
-| Where I ran the tests (Bolt terminal / my computer / Codespace) | |
-| Vitest version (the `RUN  v…` line of a run) | |
+| Assistant I reviewed with (tool) | ChatGPT (web) |
+| Exact model (with its version, or `not displayed`) | GPT-5.6 Sol |
+| Where the assistant read the project | chat with pasted files |
+| Starting point (`week-08` or `week-07`) | `week-08` |
+| Baseline commit — the checkpoint of Part 0 | `99baabc` |
+| Where I ran the tests | my computer |
+| Vitest version (the `RUN v...` line of a run) | `v2.1.9` |
 
 ---
 
@@ -149,19 +149,35 @@ Several rules repeated by the assistant are wrong for this project:
 ### 3.1 The review prompt and the answer
 
 Where it ran, and how you made sure it could not edit:
+The review was performed in ChatGPT using a read-only chat workflow. The assistant was given the project context and was explicitly instructed not to edit any files. Before the review, git status showed a clean working tree. After the review, I ran git status again to confirm that no project files had been modified.
 
 <!-- Write below this line -->
 
 What you sent, exactly (the deck's prompt):
 
 ```text
-(paste here)
+Act as a cautious software reviewer. Inspect this Smart Campus Room Availability Checker WITHOUT editing files. Identify risks in correctness, security, privacy, reliability, maintainability, and agent operations. For each risk, cite the exact file/function or missing check, explain the impact, suggest a way to verify it, and state uncertainty. Do not invent test results.
 ```
 
 The assistant's answer, pasted unedited:
 
 ```text
-(paste here)
+Read-only review only. I did not edit files and I am not treating any suggestion below as proof by itself.
+
+| # | Category | Risk / exact location | Potential impact | How to verify | Uncertainty |
+|---|---|---|---|---|---|
+| R1 | Correctness / agent operations | `app/AGENTS.md`, AC4 rule conflicts with `src/booking.ts::canBook()` and tests in `src/booking.test.ts`. The playbook says endpoint touching is overlap, while tests such as `T01`, `T08`, `BUG-A`, and `X1` expect touching to be allowed. | An agent following the playbook could “fix” correct code and introduce a booking regression. | Open `AGENTS.md`, inspect the overlap condition in `canBook()`, and run the touching tests. | **High confidence** because the documented rule and existing test titles directly conflict. |
+| R2 | Agent operations / reliability | `app/AGENTS.md` names `npm run test:unit`, but `app/package.json` does not appear to provide that script. | A background agent may believe verification failed or may skip tests because the prescribed command is invalid. | Inspect `package.json` scripts and run `npm run test:unit`. | **High confidence**; baseline execution reported `Missing script: "test:unit"`. |
+| R3 | Maintainability / correctness | Availability-related logic appears split between `src/booking.ts` and `src/bookingLogic.ts`. If both modules implement validation or overlap decisions, there are multiple decision paths. | Rules can drift: UI may report a different result from `canBook()`, especially after future edits. | Compare `canBook()` in `booking.ts` with functions in `bookingLogic.ts`; search for checks such as duration, past time, blocked status, and overlap in both files. | **Medium confidence** until the functions are compared line-by-line. This should be challenged directly in the code. |
+| R4 | Maintainability | `src/App.tsx` contains an unused `overlapsExisting` reference/import according to ESLint. | The repository does not have a green lint baseline, and stale code makes ownership of availability logic less clear. | Run `npm run lint` and inspect the import/reference in `App.tsx`. | **High confidence**; the baseline lint output identified `App.tsx` and `overlapsExisting` explicitly. |
+| R5 | Security / dependency reliability | `app/package-lock.json` / dependency tree. `npm install` reported 24 vulnerabilities: 2 low, 7 moderate, 13 high, and 2 critical. | Vulnerable development or runtime dependencies could create security or supply-chain exposure. The severity count alone does not prove the application is exploitable. | Run `npm audit` and inspect which packages, dependency paths, affected versions, and whether they are runtime or development-only. Do **not** assume `npm audit fix --force` is safe. | **Medium confidence** as a repository risk; exploitability is currently **unverified**. |
+| R6 | Agent operations / privacy | `app/AGENTS.md` instructs use of real KBTU room names and real timetable data. | An agent could replace fictional test data with institutional data, creating unnecessary privacy/data-governance risk and violating the project scope. | Compare `AGENTS.md` with the assignment constraints and inspect `src/sampleData.ts` for whether current data is fictional. | **High confidence** that the instruction is unsafe for this assignment; whether any real data is currently present still needs inspection. |
+| R7 | Security / scope control | `app/AGENTS.md` permits adding Supabase persistence/login and also suggests Netlify production deployment. | An agent could introduce authentication, credentials, network calls, a database, external deployment, or secrets that are unnecessary for this local checker. | Search the repository for `supabase`, `fetch`, `axios`, `.env`, API keys, auth code, Netlify config, and network URLs. | **High confidence** that the playbook permits these actions; **low confidence** that the current code already performs them. |
+| R8 | Reliability / tooling | `npm run lint` warns that TypeScript `5.6.3` is outside the officially supported `<5.6.0` range of `@typescript-eslint/typescript-estree`. | Lint behavior may be less reliable, and future parser/type-system incompatibilities could produce misleading failures. | Inspect versions in `package.json` / lockfile and reproduce `npm run lint`. | **Medium confidence**. The warning is real, but there is no evidence yet that it causes incorrect lint results. |
+| R9 | Verification / maintainability | `src/booking.test.ts` contains 19 tests focused on `canBook()`, while UI behavior in `src/App.tsx` does not appear to have an automated regression test. | A UI wiring bug could survive while the core booking suite remains green. | List all `*.test.*` files and check whether any render or integration test exercises `App.tsx`. | **Medium confidence** until the complete test-file list is checked. |
+| R10 | Agent operations | `app/AGENTS.md` allows broad editing (“agents may edit any project file”) and adding packages without a narrow file boundary. | A background agent could make unrelated changes, expand dependencies, or alter evidence/configuration while solving a small problem. | Compare the playbook with the required background-agent rules; inspect future diffs for unrelated files or dependency changes. | **High confidence** as an operational-control weakness. |
+
+The risks I would challenge first in the code are **R3** (possible duplicated availability logic), **R5** (whether the reported dependency vulnerabilities actually affect this application), **R6** (whether any real data is already present), **R7** (whether network/auth/deployment code currently exists), and **R9** (whether UI behavior truly lacks automated coverage). Those claims should not enter the risk register as confirmed until the cited files or commands are checked.
 ```
 
 ### 3.2 Challenging the AI's claims
@@ -172,11 +188,11 @@ inspected** is what you opened or ran yourself. **Label:** `confirmed`, `plausib
 
 | # | The AI's claim (short) | Category | What I inspected | Label | Why |
 | --- | --- | --- | --- | --- | --- |
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
-| 4 | | | | | |
-| 5 | | | | | |
+| 1 | Availability logic is duplicated between `booking.ts` and `bookingLogic.ts` | Maintainability / correctness | I opened `src/booking.ts` and `src/bookingLogic.ts` and compared `canBook()`, `checkAvailability()` and `overlapsExisting()` | `confirmed` | Both files independently implement AC1–AC4 checks. The overlap condition is also duplicated, creating two decision paths that could drift apart. |
+| 2 | `AGENTS.md` gives a test command that does not exist | Agent operations / reliability | I opened `app/package.json` and also ran `npm run test:unit` | `confirmed` | `package.json` contains `test: vitest run` but no `test:unit` script. Running `npm run test:unit` returned `Missing script: "test:unit"`. |
+| 3 | The playbook's real-room instruction creates a privacy/scope risk | Privacy / agent operations | I inspected `src/sampleData.ts` and compared it with the rule described in `AGENTS.md` | `confirmed` | The current application uses fictional rooms such as Athena Hall, Newton Lab and Darwin Seminar. Therefore replacing them with real KBTU rooms/timetables, as the playbook suggests, would unnecessarily introduce real institutional data and violate the intended fictional-data scope. |
+| 4 | The project has no automated UI/integration test for `App.tsx` | Verification / maintainability | I listed all `*.test.ts`, `*.test.tsx`, `*.spec.ts` and `*.spec.tsx` files under `app/src` | `confirmed` | The only test file found was `src/booking.test.ts`. There is no automated test that renders or exercises `App.tsx`. |
+| 5 | The playbook's AC4 rule conflicts with the actual booking behavior | Correctness / agent operations | I inspected `src/booking.ts` and the existing test names/results in `src/booking.test.ts` | `confirmed` | `canBook()` uses `start < b.end && end > b.start`, which allows endpoint touching. Existing passing tests such as `T01`, `T08`, `BUG-A` and `X1` also expect touching to be allowed, so a playbook rule saying touching is overlap would introduce a regression. |
 
 ---
 
