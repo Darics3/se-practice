@@ -32,18 +32,46 @@ script, or such a tool in `package.json`?). **Result:** `pass`, `fail`, `missing
 
 | Command | Exists | Result | Note |
 | --- | --- | --- | --- |
-| `npx vitest run` | | | |
-| `npm test` | | | |
-| `npm run test:unit` (the test command in `AGENTS.md`) | | | |
-| `npm run build` | | | |
-| `npm run lint` | | | |
+| `npx vitest run` | yes | pass | Vitest v2.1.9; 1 test file passed; 19/19 tests passed. |
+| `npm test` | yes | pass | Runs `vitest run`; 19/19 tests passed. |
+| `npm run test:unit` (the test command in `AGENTS.md`) | no | missing | `npm error Missing script: "test:unit"`. |
+| `npm run build` | yes | pass | Vite production build completed successfully; 1571 modules transformed. |
+| `npm run lint` | yes | fail | ESLint found 1 error in `src/App.tsx`: `overlapsExisting` is defined but never used. It also warned that TypeScript 5.6.3 is newer than the officially supported range of `@typescript-eslint/typescript-estree`. |
 
 ### 2.2 The baseline test run
 
 The **real** output of `npx vitest run` in `week-10/app/`, before any change:
 
 ```text
-(paste here)
+
+ RUN  v2.1.9 C:/Users/Asus/Documents/se-practice/week-10/app
+
+ ✓ src/booking.test.ts (19)
+   ✓ canBook (19)
+     ✓ T01 AC4: touching after an existing booking is allowed
+     ✓ BUG-A: request touching bookings on both sides is allowed
+     ✓ BUG-B: available check does not mutate bookings
+     ✓ T02 AC1: starting exactly at now is rejected
+     ✓ T03 AC1: zero-duration interval is rejected
+     ✓ T04 AC1: reversed interval is rejected
+     ✓ T05 AC1: interval ending after 1440 is rejected
+     ✓ T06 AC2: exactly 120 minutes is allowed
+     ✓ T07 AC2: 121 minutes is rejected
+     ✓ T08 AC4: touching before an existing booking is allowed
+     ✓ T09 AC4: partial overlap is rejected
+     ✓ T10 AC4: interval containing an existing booking is rejected
+     ✓ T11 AC4: interval inside an existing booking is rejected
+     ✓ T12 AC4: identical interval is rejected
+     ✓ T13 AC3: blocked room is rejected
+     ✓ T14 AC4: overlapping time is allowed when there are no bookings
+     ✓ AC5: available check does not change existing bookings
+     ✓ X1 AC1 AC4: one minute after now and touching booking is allowed
+     ✓ X2 AC1: interval ending exactly at 1440 is allowed
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  21:33:11
+   Duration  6.57s (transform 155ms, setup 0ms, collect 196ms, tests 20ms, environment 0ms, prepare 5.89s)
 ```
 
 ### 2.3 The agent reads the playbook
@@ -51,19 +79,69 @@ The **real** output of `npx vitest run` in `week-10/app/`, before any change:
 What you sent, exactly (the Practice #09 prompt):
 
 ```text
-(paste here)
+Read the root AGENTS.md before making changes. Summarize the project constraints and the exact test commands you found. Do not edit anything yet. If you cannot read AGENTS.md, tell me, and I will paste its content. Do not claim that AGENTS.md was automatically loaded.
 ```
 
 The assistant's answer, pasted unedited:
 
 ```text
-(paste here)
+I read `week-10/app/AGENTS.md`. I did not edit any files.
+
+The playbook says this is a React + TypeScript Vite project for checking whether a campus room is available. It identifies `src/booking.ts` and its `canBook` function as the booking-rule module, `src/App.tsx` as the page, and `src/booking.test.ts` as the test file.
+
+The constraints and rules stated in `AGENTS.md` are:
+
+- Use real room names and the real timetable from the KBTU portal.
+- AC1: reject `start >= end` and requests in the past.
+- AC2: maximum booking duration is 120 minutes.
+- AC3: reject a blocked room.
+- AC4: reject overlaps; the playbook says touching an existing booking at an endpoint also counts as overlap.
+- AC5: return Available / Unavailable without changing booking data.
+- Agents may edit any project file.
+- Agents may add packages when needed.
+- If persistence is needed, the playbook permits adding a Supabase table and login page.
+- Before finishing, verify that the page still loads.
+- After a successful build, the playbook instructs the agent to deploy a production preview with Netlify.
+
+The exact commands listed in `AGENTS.md` are:
+
+text
+npm install
+npm run dev
+npm run test:unit
+npm run build
+
+
+The exact test command named by the playbook is:
+
+text
+npm run test:unit
+
+
+I have not executed or validated these commands as part of this response, and I have not made any changes to the project.
+
 ```
 
 Which rules in its summary are wrong for this project, and how you know:
 
 <!-- Write below this line -->
+Several rules repeated by the assistant are wrong for this project:
 
+1. `AGENTS.md` says to use real KBTU room names and the real timetable. The Week 10 project contract requires one fictional room with fictional bookings, so real timetable data must not be introduced.
+
+2. The AC4 rule is incorrect. `AGENTS.md` says that touching an existing booking at an endpoint counts as an overlap. The real acceptance contract says endpoint touching is allowed. This is also supported by the existing passing tests such as `T01`, `T08`, `BUG-A`, and `X1`.
+
+3. AC6 is missing from `AGENTS.md`. The real contract requires clear UI feedback on both desktop and mobile.
+
+4. `AGENTS.md` names `npm run test:unit` as the test command, but the baseline run showed that this script does not exist. The working test commands are `npx vitest run` and `npm test`.
+
+5. The playbook allows adding a Supabase table and login page. This conflicts with the project scope, which explicitly requires no login and no database.
+
+6. The playbook tells the agent to deploy with `npx netlify deploy --prod`. External production deployment is outside the allowed project scope.
+
+7. The playbook does not explicitly prohibit secrets, credentials, API keys, passwords, tokens, or `.env` files, although the project rules require no secrets.
+
+8. The playbook only says to make sure the page loads before finishing. It does not require the test suite to run and pass before a change is accepted.
 ---
 
 ## 3. Tasks 2–3 — the read-only review and the challenge
