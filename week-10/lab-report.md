@@ -378,10 +378,55 @@ No unrelated code or project files were changed as part of this playbook patch.
 
 ### 7.1 The regression test fails before the mitigation
 
-The risk it covers: **R?**. The real run, with the new test failing:
+The risk it covers: **R1**. The real run, with the new test failing:
 
 ```text
-(paste here)
+RUN  v2.1.9 C:/Users/Asus/Documents/se-practice/week-10/app
+
+ ❯ src/booking.test.ts (20)
+   ❯ canBook (20)
+     ✓ T01 AC4: touching after an existing booking is allowed
+     ✓ BUG-A: request touching bookings on both sides is allowed
+     ✓ BUG-B: available check does not mutate bookings
+     ✓ T02 AC1: starting exactly at now is rejected
+     ✓ T03 AC1: zero-duration interval is rejected
+     ✓ T04 AC1: reversed interval is rejected
+     ✓ T05 AC1: interval ending after 1440 is rejected
+     ✓ T06 AC2: exactly 120 minutes is allowed
+     ✓ T07 AC2: 121 minutes is rejected
+     ✓ T08 AC4: touching before an existing booking is allowed
+     ✓ T09 AC4: partial overlap is rejected
+     ✓ T10 AC4: interval containing an existing booking is rejected
+     ✓ T11 AC4: interval inside an existing booking is rejected
+     ✓ T12 AC4: identical interval is rejected
+     ✓ T13 AC3: blocked room is rejected
+     ✓ T14 AC4: overlapping time is allowed when there are no bookings
+     ✓ AC5: available check does not change existing bookings
+     ✓ X1 AC1 AC4: one minute after now and touching booking is allowed
+     ✓ X2 AC1: interval ending exactly at 1440 is allowed
+     × R1 correctness: checkAvailability rejects the same invalid numeric start as canBook
+
+ FAIL  src/booking.test.ts > canBook > R1 correctness: checkAvailability rejects the same invalid numeric start as canBook
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/booking.test.ts:280:20
+    278|   ).available;
+    279|
+    280|   expect(uiResult).toBe(coreResult);
+       |                    ^
+    281| });
+    282| });
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 19 passed (20)
+   Start at  23:06:13
+   Duration  1.28s (transform 169ms, setup 0ms, collect 193ms, tests 25ms, environment 0ms, prepare 659ms)
 ```
 
 ### 7.2 The manual UI check

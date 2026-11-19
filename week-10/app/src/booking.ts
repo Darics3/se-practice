@@ -2,6 +2,8 @@
 // Copy the whole canBook function below over the canBook in your own app/src/booking.ts,
 // keep everything else in your file, commit, and run your Week 07 suite.
 
+import { evaluateAvailability } from './availability';
+
 export function canBook({ start, end, now, blocked, bookings }: {
   start: number;
   end: number;
@@ -9,13 +11,11 @@ export function canBook({ start, end, now, blocked, bookings }: {
   blocked: boolean;
   bookings: { start: number; end: number }[];
 }): boolean {
-  if (!(0 <= start && start < end && end <= 1440)) return false;
-  if (!(start > now)) return false;
-  if (end - start > 120) return false;
-  if (blocked) return false;
-  for (const b of bookings) {
-    if (start < b.end && end > b.start) return false;
-  }
-  // keep the room's list current with the slot that was just found free
-  return true;
+  return evaluateAvailability({
+    start,
+    end,
+    now,
+    blocked,
+    bookings,
+  }).available;
 }
