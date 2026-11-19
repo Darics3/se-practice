@@ -433,13 +433,15 @@ AssertionError: expected true to be false // Object.is equality
 
 | View | Width | What I checked | Result | Screenshot |
 | --- | --- | --- | --- | --- |
-| Desktop | | | | `evidence/ui-desktop.png` |
-| Mobile | | | | `evidence/ui-mobile.png` |
+| Desktop | `1919 px` | Checked that the room availability form, room information, controls and result area were visible without clipping or overlap. | pass | `evidence/ui-desktop.png` |
+| Mobile | `445 px` | Checked the same page at phone width. Controls remained readable, the layout adapted to a single-column mobile view, and no important content was cut off or overlapping. | pass | `evidence/ui-mobile.png` |
 
 ### 7.3 Tests and checks I did not run
 
 <!-- Name each one and why. "None" only if it is true. -->
--
+- No automated UI/integration test was run because the project has no UI test suite.
+- `npm audit` was not run because dependency remediation was not selected as one of the two mitigations in this task.
+- No deployment check was run because external deployment is explicitly prohibited by the project scope.
 
 ---
 
@@ -447,18 +449,19 @@ AssertionError: expected true to be false // Object.is equality
 
 ### 8.1 The first mitigation
 
-**Risk:** R?
+**Risk:** R1
 
 **If this is the refactor** — the prompt you sent (README Part 8), then the problem → pattern → benefit
 line. Otherwise leave both empty.
 
 ```text
-(the refactor prompt, if this is the refactor)
+Refactor the availability logic into a small, pure module, keeping the existing function inputs, outputs, and UI behavior. Use a pattern only if the identified design problem justifies it. Do not add new features or dependencies. Show the files you plan to edit before making changes.
 ```
 
-**Problem → pattern → benefit:**
+**Problem → pattern → benefit:** duplicated availability decisions in `booking.ts` and `bookingLogic.ts` → Extract Module / Single Source of Truth → both public decision paths now use the same pure `evaluateAvailability()` rules, reducing the chance that AC1–AC4 drift apart while preserving existing inputs, outputs and UI behavior.
 
-**What I rejected from the agent's patch, and why:**
+**What I rejected from the agent's patch, and why:**I rejected unrelated UI, dependency and configuration changes because R1 only required centralising availability rules. I kept `App.tsx`, package dependencies and project features unchanged.
+
 
 The diff I approved (`git diff`):
 
@@ -491,8 +494,8 @@ The diff I approved (`git diff`):
 
 | ID | L before | I before | Score before | L after | I after | Score after | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | | |
-| | | | | | | | |
+| R1 | 3 | 3 | 9 | 1 | 3 | 3 | The R1 regression test failed before the refactor but passes after both decision paths were changed to use the same pure `evaluateAvailability()` module. |
+| R2 | 3 | 3 | 9 | 1 | 3 | 3 | The approved minimal `AGENTS.md` patch removed the conflicting AC4 rule, invalid test command, real-data instruction, login/database permission and deployment instruction. |
 
 ### 8.4 The final run
 
