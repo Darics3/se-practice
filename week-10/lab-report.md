@@ -149,13 +149,15 @@ Several rules repeated by the assistant are wrong for this project:
 ### 3.1 The review prompt and the answer
 
 Where it ran, and how you made sure it could not edit:
-The review was performed in ChatGPT using a read-only chat workflow. The assistant was given the project context and was explicitly instructed not to edit any files. Before the review, git status showed a clean working tree. After the review, I ran git status again to confirm that no project files had been modified.
 
 <!-- Write below this line -->
+
+The review was performed in ChatGPT (web) using a read-only chat workflow. ChatGPT could not directly edit or write to my local repository. Before the review, I confirmed with `git status` that the working tree was clean. After the review, I ran `git status` again and confirmed that no project files had been modified.
 
 What you sent, exactly (the deck's prompt):
 
 ```text
+Act as a cautious software reviewer. Inspect this Smart Campus Room Availability Checker WITHOUT editing files. Identify risks in correctness, security, privacy, reliability, maintainability, and agent operations. For each risk, cite the exact file/function or missing check, explain the impact, suggest a way to verify it, and state uncertainty. Do not invent test results.
 Act as a cautious software reviewer. Inspect this Smart Campus Room Availability Checker WITHOUT editing files. Identify risks in correctness, security, privacy, reliability, maintainability, and agent operations. For each risk, cite the exact file/function or missing check, explain the impact, suggest a way to verify it, and state uncertainty. Do not invent test results.
 ```
 
@@ -355,21 +357,23 @@ One row per missing or conflicting rule the answer reported, plus any it missed.
 `git diff app/AGENTS.md`, after you applied only what you approved:
 
 ```text
-I reviewed the proposed patch before applying it and approved only the changes that directly corrected the identified playbook risks.
+- For realism, use real room names and the real timetable from the KBTU portal.
++ Use one fictional room with fictional bookings. Do not introduce real personal or timetable data.
 
-The final `git diff app/AGENTS.md` changes 13 lines, which is within the required 1–14 line limit. All existing headings are preserved.
+- AC4 Reject overlaps. A request that touches a booking at an endpoint also counts as an overlap.
++ AC4 Reject overlaps; allow requests that only touch an existing booking at an endpoint.
++ AC6 Preserve clear UI feedback on desktop and mobile.
 
-The approved patch:
+- Tests: `npm run test:unit`
++ Tests: `npm test`
 
-- replaces the instruction to use real KBTU timetable data with fictional room data;
-- corrects AC4 so endpoint touching is allowed;
-- adds the missing AC6 responsive-feedback rule;
-- replaces the non-existent `npm run test:unit` command with the real `npm test` command;
-- removes permission to add Supabase/login and explicitly prohibits secrets;
-- removes external Netlify deployment;
-- requires tests to pass before proposing acceptance.
+- If bookings need to persist, add a small Supabase table and a login page.
++ Do not add login, databases, secrets, credentials, API keys, passwords, tokens or `.env` files.
 
-No unrelated code or project files were changed as part of this playbook patch.
+- Make sure the page still loads.
+- When the build passes, publish a preview with `npx netlify deploy --prod` so the team can see it.
++ Run the tests and require them to pass before proposing acceptance; also make sure the page still loads.
++ Do not deploy the project to any external or production service.
 ```
 
 ---
@@ -466,12 +470,288 @@ Refactor the availability logic into a small, pure module, keeping the existing 
 The diff I approved (`git diff`):
 
 ```text
-(paste here)
+git --no-pager show --format= 811c422 -- app/src/availability.ts app/src/booking.ts app/src/bookingLogic.ts
+diff --git a/week-10/app/src/availability.ts b/week-10/app/src/availability.ts
+new file mode 100644
+index 0000000..3147264
+--- /dev/null
++++ b/week-10/app/src/availability.ts
+@@ -0,0 +1,66 @@
++export type TimeSlot = {
++  start: number;
++  end: number;
++};
++
++export type AvailabilityCode =
++  | 'available'
++  | 'non-finite'
++  | 'out-of-range'
++  | 'invalid-order'
++  | 'past'
++  | 'too-long'
++  | 'blocked'
++  | 'overlap';
++
++export type AvailabilityDecision =
++  | { available: true; code: 'available' }
++  | { available: false; code: Exclude<AvailabilityCode, 'available'>; conflictIndex?: number };
++
++export function evaluateAvailability({
++  start,
++  end,
++  now,
++  blocked,
++  bookings,
++}: {
++  start: number;
++  end: number;
++  now: number;
++  blocked: boolean;
++  bookings: TimeSlot[];
++}): AvailabilityDecision {
++  if (![start, end, now].every(Number.isFinite)) {
++    return { available: false, code: 'non-finite' };
++  }
++
++  if (start < 0 || end > 1440) {
++    return { available: false, code: 'out-of-range' };
++  }
++
++  if (start >= end) {
++    return { available: false, code: 'invalid-order' };
++  }
++
++  if (start <= now) {
++    return { available: false, code: 'past' };
++  }
++
++  if (end - start > 120) {
++    return { available: false, code: 'too-long' };
++  }
++
++  if (blocked) {
++    return { available: false, code: 'blocked' };
++  }
++
++  const conflictIndex = bookings.findIndex(
++    (booking) => start < booking.end && end > booking.start,
++  );
++
++  if (conflictIndex !== -1) {
++    return { available: false, code: 'overlap', conflictIndex };
++  }
++
++  return { available: true, code: 'available' };
++}
+\ No newline at end of file
+diff --git a/week-10/app/src/booking.ts b/week-10/app/src/booking.ts
+index 8c4559e..59149e3 100644
+--- a/week-10/app/src/booking.ts
++++ b/week-10/app/src/booking.ts
+@@ -2,6 +2,8 @@
+ // Copy the whole canBook function below over the canBook in your own app/src/booking.ts,
+ // keep everything else in your file, commit, and run your Week 07 suite.
+ 
++import { evaluateAvailability } from './availability';
++
+ export function canBook({ start, end, now, blocked, bookings }: {
+   start: number;
+   end: number;
+@@ -9,13 +11,11 @@ export function canBook({ start, end, now, blocked, bookings }: {
+   blocked: boolean;
+   bookings: { start: number; end: number }[];
+ }): boolean {
+-  if (!(0 <= start && start < end && end <= 1440)) return false;
+-  if (!(start > now)) return false;
+-  if (end - start > 120) return false;
+-  if (blocked) return false;
+-  for (const b of bookings) {
+-    if (start < b.end && end > b.start) return false;
+-  }
+-  // keep the room's list current with the slot that was just found free
+-  return true;
+-}
++  return evaluateAvailability({
++    start,
++    end,
++    now,
++    blocked,
++    bookings,
++  }).available;
++}
+\ No newline at end of file
+diff --git a/week-10/app/src/bookingLogic.ts b/week-10/app/src/bookingLogic.ts
+index 309a65f..22206e1 100644
+--- a/week-10/app/src/bookingLogic.ts
++++ b/week-10/app/src/bookingLogic.ts
+@@ -1,29 +1,40 @@
+ import type { Room, Booking, CheckResult } from './types';
++import { evaluateAvailability } from './availability';
+ 
+ export function timeToMinutes(time: string): number | null {
+   const match = /^(\d{2}):(\d{2})$/.exec(time);
+   if (!match) return null;
++
+   const h = Number(match[1]);
+   const m = Number(match[2]);
++
+   if (h < 0 || h > 23 || m < 0 || m > 59) return null;
++
+   return h * 60 + m;
+ }
+ 
+ export function minutesToTime(min: number): string {
+   const h = Math.floor(min / 60);
+   const m = min % 60;
++
+   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+ }
+ 
+ export function formatDuration(min: number): string {
+   const h = Math.floor(min / 60);
+   const m = min % 60;
++
+   if (h === 0) return `${m} min`;
+   if (m === 0) return `${h} hr`;
++
+   return `${h} hr ${m} min`;
+ }
+ 
+-export function overlapsExisting(start: number, end: number, existing: Booking[]): Booking | null {
++export function overlapsExisting(
++  start: number,
++  end: number,
++  existing: Booking[],
++): Booking | null {
+   return existing.find((b) => start < b.end && b.start < end) ?? null;
+ }
+ 
+@@ -34,39 +45,89 @@ export function checkAvailability(
+   roomBookings: Booking[],
+   currentTime: number,
+ ): CheckResult {
+-  // AC1: interval must satisfy 0 ≤ start < end ≤ 1440 and start > currentTime
+-  if (startMin < 0 || endMin > 1440) {
+-    return { available: false, reason: 'Time must be within 00:00–24:00.' };
+-  }
+-  if (startMin >= endMin) {
+-    return { available: false, reason: 'Start time must be before end time.' };
+-  }
+-  if (startMin <= currentTime) {
+-    return { available: false, reason: 'Start time must be after the current time.' };
+-  }
+-
+-  // AC2: reject booking longer than 120 minutes
+-  if (endMin - startMin > 120) {
+-    return { available: false, reason: 'Bookings cannot be longer than 120 minutes.' };
+-  }
+-
+-  // AC3: reject if room is blocked
+   if (!room) {
+-    return { available: false, reason: 'Please select a room.' };
+-  }
+-  if (room.blocked) {
+-    return { available: false, reason: `${room.name} is blocked — ${room.blockedReason ?? 'unavailable'}.` };
+-  }
+-
+-  // AC4: reject overlapping intervals (touching endpoints allowed)
+-  const conflict = overlapsExisting(startMin, endMin, roomBookings);
+-  if (conflict) {
+     return {
+       available: false,
+-      reason: `Overlaps "${conflict.title}" (${minutesToTime(conflict.start)}–${minutesToTime(conflict.end)}).`,
++      reason: 'Please select a room.',
+     };
+   }
+ 
+-  // AC5: decision only — data is not modified
+-  return { available: true };
+-}
++  const decision = evaluateAvailability({
++    start: startMin,
++    end: endMin,
++    now: currentTime,
++    blocked: room.blocked,
++    bookings: roomBookings,
++  });
++
++  if (decision.available) {
++    return { available: true };
++  }
++
++  switch (decision.code) {
++    case 'non-finite':
++      return {
++        available: false,
++        reason: 'Please enter valid times in HH:MM format.',
++      };
++
++    case 'out-of-range':
++      return {
++        available: false,
++        reason: 'Time must be within 00:00–24:00.',
++      };
++
++    case 'invalid-order':
++      return {
++        available: false,
++        reason: 'Start time must be before end time.',
++      };
++
++    case 'past':
++      return {
++        available: false,
++        reason: 'Start time must be after the current time.',
++      };
++
++    case 'too-long':
++      return {
++        available: false,
++        reason: 'Bookings cannot be longer than 120 minutes.',
++      };
++
++    case 'blocked':
++      return {
++        available: false,
++        reason: `${room.name} is blocked — ${
++          room.blockedReason ?? 'unavailable'
++        }.`,
++      };
++
++    case 'overlap': {
++      const conflict =
++        decision.conflictIndex === undefined
++          ? undefined
++          : roomBookings[decision.conflictIndex];
++
++      if (conflict) {
++        return {
++          available: false,
++          reason: `Overlaps "${conflict.title}" (${minutesToTime(
++            conflict.start,
++          )}–${minutesToTime(conflict.end)}).`,
++        };
++      }
++
++      return {
++        available: false,
++        reason: 'The requested time overlaps an existing booking.',
++      };
++    }
++
++    default:
++      return {
++        available: false,
++        reason: 'Unavailable.',
++      };
++  }
++}
+\ No newline at end of file
 ```
 
 ### 8.2 The second mitigation
 
-**Risk:** R?
+**Risk:** R2
 
 **If this is the refactor** — the prompt you sent (README Part 8), then the problem → pattern → benefit
 line. Otherwise leave both empty.
@@ -480,14 +760,56 @@ line. Otherwise leave both empty.
 (the refactor prompt, if this is the refactor)
 ```
 
-**Problem → pattern → benefit:**
+**Problem → pattern → benefit:** 
 
-**What I rejected from the agent's patch, and why:**
+**What I rejected from the agent's patch, and why:** I rejected a full rewrite of AGENTS.md and any changes outside the identified playbook problems. I kept the existing headings and structure and approved only the minimal changes required to correct AC4, add AC6, use the real test command, require fictional data, prohibit login/database/secrets/external deployment, and require tests before acceptance.
 
 The diff I approved (`git diff`):
 
 ```text
-(paste here)
+git --no-pager show --format= a9d8b15 -- app/AGENTS.md
+diff --git a/week-10/app/AGENTS.md b/week-10/app/AGENTS.md
+index b786d88..d9bbb16 100644
+--- a/week-10/app/AGENTS.md
++++ b/week-10/app/AGENTS.md
+@@ -9,30 +9,31 @@ A React + TypeScript page (Vite) that tells a student whether a campus room is f
+ requested time. The booking rule lives in `src/booking.ts` (`canBook`); the page is `src/App.tsx`;
+ the tests are in `src/booking.test.ts`.
+ 
+-For realism, use real room names and the real timetable from the KBTU portal.
++Use one fictional room with fictional bookings. Do not introduce real personal or timetable data.
+ 
+ ## Acceptance contract
+ 
+ - AC1 Reject start ≥ end and requests in the past.
+ - AC2 Enforce the maximum allowed duration (120 minutes).
+ - AC3 Reject a blocked room.
+-- AC4 Reject overlaps. A request that touches a booking at an endpoint also counts as an overlap.
++- AC4 Reject overlaps; allow requests that only touch an existing booking at an endpoint.
+ - AC5 Return Available / Unavailable without changing booking data.
++- AC6 Preserve clear UI feedback on desktop and mobile.
+ 
+ ## Commands
+ 
+ - Install: `npm install`
+ - Dev server: `npm run dev`
+-- Tests: `npm run test:unit`
++- Tests: `npm test`
+ - Build: `npm run build`
+ 
+ ## You may
+ 
+ - Edit any file in the project.
+ - Add packages when a task needs them.
+-- If bookings need to persist, add a small Supabase table and a login page.
++- Do not add login, databases, secrets, credentials, API keys, passwords, tokens or `.env` files.
+ 
+ ## Before you finish
+ 
+-- Make sure the page still loads.
+-- When the build passes, publish a preview with `npx netlify deploy --prod` so the team can see it.
++- Run the tests and require them to pass before proposing acceptance; also make sure the page still loads.
++- Do not deploy the project to any external or production service.
 ```
 
 ### 8.3 The residual risk
@@ -502,7 +824,38 @@ The diff I approved (`git diff`):
 The real output of the **full** suite after both mitigations. Every test must pass.
 
 ```text
-(paste here)
+> vite-react-typescript-starter@0.0.0 test
+> vitest run
+
+ RUN  v2.1.9 C:/Users/Asus/Documents/se-practice/week-10/app
+
+ ✓ src/booking.test.ts (20)
+   ✓ canBook (20)
+     ✓ T01 AC4: touching after an existing booking is allowed
+     ✓ BUG-A: request touching bookings on both sides is allowed
+     ✓ BUG-B: available check does not mutate bookings
+     ✓ T02 AC1: starting exactly at now is rejected
+     ✓ T03 AC1: zero-duration interval is rejected
+     ✓ T04 AC1: reversed interval is rejected
+     ✓ T05 AC1: interval ending after 1440 is rejected
+     ✓ T06 AC2: exactly 120 minutes is allowed
+     ✓ T07 AC2: 121 minutes is rejected
+     ✓ T08 AC4: touching before an existing booking is allowed
+     ✓ T09 AC4: partial overlap is rejected
+     ✓ T10 AC4: interval containing an existing booking is rejected
+     ✓ T11 AC4: interval inside an existing booking is rejected
+     ✓ T12 AC4: identical interval is rejected
+     ✓ T13 AC3: blocked room is rejected
+     ✓ T14 AC4: overlapping time is allowed when there are no bookings
+     ✓ AC5: available check does not change existing bookings
+     ✓ X1 AC1 AC4: one minute after now and touching booking is allowed
+     ✓ X2 AC1: interval ending exactly at 1440 is allowed
+     ✓ R1 correctness: checkAvailability rejects the same invalid numeric start as canBook
+
+ Test Files  1 passed (1)
+      Tests  20 passed (20)
+   Start at  00:22:01
+   Duration  1.71s (transform 107ms, setup 0ms, collect 168ms, tests 9ms, environment 0ms, prepare 150ms)
 ```
 
 ---
@@ -516,12 +869,12 @@ its files and its commands.
 
 | Rule | What I require |
 | --- | --- |
-| Isolation | |
-| Permitted files | |
-| Commands | |
-| Prohibited actions | |
-| Required evidence | |
-| Before merging or deploying | |
+| Isolation | Work only on a separate `week-10` agent branch and never edit `main` directly. |
+| Permitted files | Edit only the files required for the assigned task inside `week-10/app/`; do not change reports, evidence, or submission files unless explicitly requested. |
+| Commands | Run `npm test`, `npm run build`, and `npm run lint` from `week-10/app/` before proposing acceptance, and report failures honestly. |
+| Prohibited actions | Do not add login, databases, secrets, `.env` files, external APIs, deployments, destructive Git commands, or unrelated dependencies. |
+| Required evidence | Provide the changed-file list, full Git diff, test output, build result, and a short review note explaining remaining risks. |
+| Before merging or deploying | Re-run the full test suite, review the diff for unrelated changes, confirm no confirmed risk scores 6 or more, and require human approval before merge; deployment is prohibited. |
 
 ### 9.2 Optional — the deck's checklist prompt (not graded)
 
@@ -539,7 +892,7 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
 
 ## 10. Release decision and conclusion
 
-**Decision:** GO / CONDITIONAL / NO-GO
+**Decision:** GO
 
 <!-- Keep one word above. GO is not allowed while any confirmed risk still scores 6 or more.
      Then 80-150 words, in your own words, without the assistant: why this decision, from the
@@ -551,3 +904,4 @@ Use the same IDs as `known_fails` in `submission.yml`. Write `none` if the run i
      but no test covers App.tsx, so a regression there would be invisible." -->
 
 <!-- Write your conclusion below this line -->
+I would release this version because the two highest confirmed risks have been reduced below the blocking threshold. R1 originally scored 9 because availability rules were duplicated between `booking.ts` and `bookingLogic.ts`. After the pure-module refactor, both decision paths use `evaluateAvailability()`, the regression test passes, and the final suite is 20/20 green. R2 also scored 9 because `AGENTS.md` contained conflicting rules and unsafe agent instructions. The approved minimal patch corrected AC4, added AC6, fixed the test command, required fictional data, and prohibited login, databases, secrets, and external deployment. Both R1 and R2 now have residual scores of 3, so no confirmed risk remains at 6 or above.
