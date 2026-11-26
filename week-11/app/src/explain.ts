@@ -47,11 +47,19 @@ export class ExplanationInputError extends Error {
   }
 }
 
-function isValidTime(value: unknown): value is string {
+
+function isValidTime(value: unknown, allowEndOfDay = false): value is string {
   if (typeof value !== 'string' || !/^\d{2}:\d{2}$/.test(value)) return false;
+
   const [hours, minutes] = value.split(':').map(Number);
-  return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+
+  if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+    return true;
+  }
+
+  return allowEndOfDay && hours === 24 && minutes === 0;
 }
+
 
 function isReasonCode(value: unknown): value is ExplanationReasonCode {
   return (
@@ -74,7 +82,7 @@ function validateInput(input: unknown): ExplanationInput {
   if (roomLabel.length === 0 || roomLabel.length > 60) {
     throw new ExplanationInputError('Room name must be 1–60 characters.');
   }
-  if (!isValidTime(candidate.start) || !isValidTime(candidate.end)) {
+  if (!isValidTime(candidate.start) || !isValidTime(candidate.end, true)) {
     throw new ExplanationInputError('Start and end must be valid HH:MM times.');
   }
   if (typeof candidate.isAvailable !== 'boolean') {
@@ -124,6 +132,13 @@ function escapeRegExp(value: string): string {
 }
 
 function outputMatchesDecision(text: string, input: ExplanationInput): boolean {
+
+  // Accept only the approved explanation template for this reason code.
+  // Unknown or contradictory wording must fall back to a safe explanation.
+  if (text.trim() !== fallbackExplanation(input.reasonCode)) {
+    return false;
+  }
+
   const positiveClaim = /\b(?:free|available|can be booked)\b/i;
   const negativeClaim =
     /\b(?:unavailable|not available|not free|overlaps?|blocked|invalid|past|too long|cannot be booked|can't be booked)\b/i;

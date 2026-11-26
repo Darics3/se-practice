@@ -214,4 +214,36 @@ describe('explainAvailability', () => {
       }),
     ).rejects.toThrow('agree');
   });
+
+test('V1 F2: contradictory explanation must use fallback', async () => {
+  const result = await explainAvailability(
+    {
+      ...availableInput,
+      isAvailable: false,
+      reasonCode: 'overlap',
+    },
+    () => ({
+      explanation:
+        'This requested time is not unavailable because it overlaps an existing booking.',
+    }),
+  );
+
+  expect(result.source).toBe('fallback');
+  expect(result.explanation).toContain('unavailable');
+});
+
+test('V2 F3: valid end-of-day time 24:00 is accepted', async () => {
+  const result = await explainAvailability(
+    {
+      ...availableInput,
+      start: '23:00',
+      end: '24:00',
+    },
+    mockAdapter,
+  );
+
+  expect(result.source).toBe('adapter');
+  expect(result.explanation).toContain('available');
+});
+
 });
