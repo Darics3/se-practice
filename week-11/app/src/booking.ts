@@ -4,12 +4,14 @@
 
 import { evaluateAvailability } from './availability';
 
+export type ExistingBooking = { start: number; end: number };
+
 export function canBook({ start, end, now, blocked, bookings }: {
   start: number;
   end: number;
   now: number;
   blocked: boolean;
-  bookings: { start: number; end: number }[];
+  bookings: ExistingBooking[];
 }): boolean {
   return evaluateAvailability({
     start,

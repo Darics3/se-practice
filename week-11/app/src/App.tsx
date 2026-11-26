@@ -1,9 +1,16 @@
 import { Calendar, Clock, Users, AlertCircle, CheckCircle2, XCircle, Ban, MapPin } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { rooms, bookings } from './sampleData';
-import { checkAvailability, timeToMinutes, minutesToTime, formatDuration, overlapsExisting } from './bookingLogic';
+import { checkAvailability, timeToMinutes, minutesToTime, formatDuration } from './bookingLogic';
 import type { CheckResult } from './types';
 import { canBook } from './booking';
+import { availabilityReason } from './availability';
+import {
+  explainAvailability,
+  mockAdapter,
+  type ExplanationInput,
+  type ExplanationResult,
+} from './explain';
 
 export default function App() {
   const [roomId, setRoomId] = useState('');
@@ -14,6 +21,12 @@ export default function App() {
     return now.getHours() * 60 + now.getMinutes();
   });
   const [result, setResult] = useState<CheckResult | null>(null);
+  const [explanationInput, setExplanationInput] = useState<ExplanationInput | null>(null);
+  const [explanation, setExplanation] = useState<ExplanationResult | null>(null);
+  const [explanationError, setExplanationError] = useState('');
+  const [simulateFailure, setSimulateFailure] = useState(false);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const explanationRequest = useRef(0);
 
   const selectedRoom = useMemo(() => rooms.find((r) => r.id === roomId), [roomId]);
   const roomBookings = useMemo(
@@ -21,40 +34,88 @@ export default function App() {
     [roomId],
   );
 
-function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  const startMin = timeToMinutes(startTime);
-  const endMin = timeToMinutes(endTime);
-
-  if (startMin === null || endMin === null) {
-    setResult({ available: false, reason: 'Please enter valid times in HH:MM format.' });
-    return;
+  function clearExplanation() {
+    explanationRequest.current += 1;
+    setExplanation(null);
+    setExplanationError('');
+    setIsExplaining(false);
   }
 
-  if (!selectedRoom) {
-    setResult({ available: false, reason: 'Please select a room.' });
-    return;
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    clearExplanation();
+    setExplanationInput(null);
+    const startMin = timeToMinutes(startTime);
+    const endMin = timeToMinutes(endTime);
+
+    if (startMin === null || endMin === null) {
+      setResult({ available: false, reason: 'Please enter valid times in HH:MM format.' });
+      return;
+    }
+
+    if (!selectedRoom) {
+      setResult({ available: false, reason: 'Please select a room.' });
+      return;
+    }
+
+    const request = {
+      start: startMin,
+      end: endMin,
+      now: currentTime,
+      blocked: selectedRoom.blocked,
+      bookings: roomBookings,
+    };
+    const available = canBook(request);
+    const reasonCode = availabilityReason(request);
+
+    if (available) {
+      setResult({ available: true });
+    } else {
+      setResult(checkAvailability(startMin, endMin, selectedRoom, roomBookings, currentTime));
+    }
+    setExplanationInput({
+      roomLabel: selectedRoom.name,
+      start: startTime,
+      end: endTime,
+      isAvailable: available,
+      reasonCode,
+    });
   }
 
-  const available = canBook({
-    start: startMin,
-    end: endMin,
-    now: currentTime,
-    blocked: selectedRoom.blocked,
-    bookings: roomBookings,
-  });
+  async function handleExplain() {
+    if (!explanationInput) return;
 
-  if (available) {
-    setResult({ available: true });
-  } else {
-    setResult(checkAvailability(startMin, endMin, selectedRoom, roomBookings, currentTime));
+    const requestId = ++explanationRequest.current;
+    setExplanation(null);
+    setExplanationError('');
+    setIsExplaining(true);
+    try {
+      const adapter = simulateFailure
+        ? async () => {
+            throw new Error('Simulated explanation service failure.');
+          }
+        : mockAdapter;
+      const response = await explainAvailability(explanationInput, adapter);
+      if (requestId === explanationRequest.current) setExplanation(response);
+    } catch (error) {
+      if (requestId === explanationRequest.current) {
+        setExplanationError(
+          error instanceof Error ? error.message : 'Explanation input is invalid.',
+        );
+      }
+    } finally {
+      if (requestId === explanationRequest.current) setIsExplaining(false);
+    }
   }
-}
+
   function handleReset() {
+    clearExplanation();
     setRoomId('');
     setStartTime('');
     setEndTime('');
     setResult(null);
+    setExplanationInput(null);
+    setSimulateFailure(false);
   }
 
   const currentLabel = minutesToTime(currentTime);
@@ -92,7 +153,7 @@ function handleSubmit(e: React.FormEvent) {
                 <select
                   id="room"
                   value={roomId}
-                  onChange={(e) => { setRoomId(e.target.value); setResult(null); }}
+                  onChange={(e) => { clearExplanation(); setRoomId(e.target.value); setResult(null); setExplanationInput(null); }}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-white"
                 >
                   <option value="">— Choose a room —</option>
@@ -121,7 +182,7 @@ function handleSubmit(e: React.FormEvent) {
                     id="start"
                     type="time"
                     value={startTime}
-                    onChange={(e) => { setStartTime(e.target.value); setResult(null); }}
+                    onChange={(e) => { clearExplanation(); setStartTime(e.target.value); setResult(null); setExplanationInput(null); }}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
                   />
                 </div>
@@ -131,7 +192,7 @@ function handleSubmit(e: React.FormEvent) {
                     id="end"
                     type="time"
                     value={endTime}
-                    onChange={(e) => { setEndTime(e.target.value); setResult(null); }}
+                    onChange={(e) => { clearExplanation(); setEndTime(e.target.value); setResult(null); setExplanationInput(null); }}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
                   />
                 </div>
@@ -150,8 +211,10 @@ function handleSubmit(e: React.FormEvent) {
                   onChange={(e) => {
                     const m = timeToMinutes(e.target.value);
                     if (m !== null) {
+                      clearExplanation();
                       setCurrentTime(m);
                       setResult(null);
+                      setExplanationInput(null);
                     }
                   }}
                   className="rounded-md border border-slate-300 px-2 py-1 text-xs font-mono font-semibold text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-white"
@@ -161,8 +224,10 @@ function handleSubmit(e: React.FormEvent) {
                   onClick={() => {
                     const now = new Date();
                     const m = now.getHours() * 60 + now.getMinutes();
+                    clearExplanation();
                     setCurrentTime(m);
                     setResult(null);
+                    setExplanationInput(null);
                   }}
                   className="ml-auto text-teal-600 hover:text-teal-700 font-medium underline"
                 >
@@ -210,6 +275,42 @@ function handleSubmit(e: React.FormEvent) {
                     <p className={`text-sm mt-0.5 ${result.available ? 'text-emerald-700' : 'text-red-700'}`}>
                       {result.reason}
                     </p>
+                  )}
+                  {explanationInput && (
+                    <div className="mt-3 border-t border-current/10 pt-3">
+                      <label className="flex items-center gap-2 text-xs text-slate-600">
+                        <input
+                          type="checkbox"
+                          checked={simulateFailure}
+                          onChange={(event) => {
+                            setSimulateFailure(event.target.checked);
+                            clearExplanation();
+                          }}
+                        />
+                        Simulate explanation service failure
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleExplain}
+                        disabled={isExplaining}
+                        className="mt-2 text-sm font-semibold text-teal-700 underline disabled:opacity-50"
+                      >
+                        {isExplaining ? 'Explaining…' : 'Explain availability'}
+                      </button>
+                      {explanationError && (
+                        <p role="alert" className="mt-2 text-sm text-red-700">{explanationError}</p>
+                      )}
+                      {explanation && (
+                        <div className="mt-2 rounded-lg bg-white/70 p-3 text-sm text-slate-700">
+                          <p className="text-xs font-semibold text-slate-500">
+                            {explanation.source === 'fallback'
+                              ? 'Fallback explanation, not a booking decision'
+                              : 'Generated explanation (mock), not a booking decision'}
+                          </p>
+                          <p className="mt-1">{explanation.explanation}</p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

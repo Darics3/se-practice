@@ -6,8 +6,10 @@ anything, and follow it over any general habit of yours.
 ## Project
 
 A React + TypeScript page (Vite) that tells a student whether a campus room is free for a
-requested time. The booking rule lives in `src/booking.ts` (`canBook`); the page is `src/App.tsx`;
-the tests are in `src/booking.test.ts`.
+requested time. The booking rule lives in `src/booking.ts` (`canBook`) and `src/availability.ts`
+(`evaluateAvailability` and its reason code); the page is `src/App.tsx`; the tests are in
+`src/booking.test.ts`. Optional explanations live in `src/explain.ts` and must never decide
+availability or modify bookings.
 
 Use one fictional room with fictional bookings. Do not introduce real personal or timetable data.
 
@@ -26,6 +28,7 @@ Use one fictional room with fictional bookings. Do not introduce real personal o
 - Dev server: `npm run dev`
 - Tests: `npm test`
 - Build: `npm run build`
+- Type check: `npm run typecheck`
 
 ## You may
 
