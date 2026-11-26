@@ -341,16 +341,16 @@ The experiment used GPT-6 High in separate chats. The chosen instruction will be
 
 | ID | Case | Expected | Observed | Verdict | How |
 | --- | --- | --- | --- | --- | --- |
-| E1 | available | | | | |
-| E2 | overlap | | | | |
-| E3 | blocked room | | | | |
-| E4 | invalid time | | | | |
-| E5 | past time | | | | |
-| E6 | empty input | | | | |
-| E7 | long input | | | | |
-| E8 | timeout | | | | |
-| E9 | simulated API failure | | | | |
-| UI | the UI never changes the deterministic decision | | | | |
+| E1 | available | Deterministic decision is available; mock explains it. | canBook returned true; explanation contained "available"; source was adapter. | pass | `E1 available: mock explains a deterministic available result` |
+| E2 | overlap | Overlapping booking is unavailable and explained. | canBook returned false; explanation contained "overlaps". | pass | `E2 overlap: mock explanation agrees with an unavailable result` |
+| E3 | blocked room | Blocked room is unavailable and explained. | canBook returned false; explanation contained "blocked". | pass | `E3 blocked room: mock explanation names the deterministic reason` |
+| E4 | invalid time | Invalid interval maps to invalid_time. | Reversed interval returned invalid_time. | pass | `E4 invalid time reason: deterministic checker maps invalid intervals` |
+| E5 | past time | Past interval maps to past_time. | Past interval returned past_time. | pass | `E5 past time reason: deterministic checker maps past intervals` |
+| E6 | empty input | Reject empty roomLabel before calling adapter. | Input rejected; adapter was not called. | pass | `E6 empty room name is rejected before calling the adapter` |
+| E7 | long input | Reject roomLabel longer than 60 characters. | 500-character roomLabel was rejected. | pass | `E7 room names longer than 60 characters are rejected` |
+| E8 | timeout | Timeout produces safe fallback. | Hanging adapter timed out; source was fallback. | pass | `E8 a hanging adapter times out to a safe fallback` |
+| E9 | simulated API failure | Adapter error produces fallback without changing availability. | Adapter threw an error; fallback returned and isAvailable remained true. | pass | `E9 a failing adapter uses a fallback without changing availability` |
+| UI | the UI never changes the deterministic decision | Generated and fallback text appear separately while status stays Available. | Both browser screenshots show unchanged Available status. | pass | manual: explain-available.png and explain-fallback.png |
 
 ### 6.2 The run after the feature
 
@@ -372,8 +372,8 @@ RUN  v2.1.9 C:/Users/Asus/Documents/se-practice/week-11/app
 
 | File | What it shows |
 | --- | --- |
-| `evidence/explain-available.png` | |
-| `evidence/explain-fallback.png` | |
+| `evidence/explain-available.png` | Athena Hall is available from 11:00 to 12:00. The mock adapter produces a generated explanation, displayed separately from the deterministic availability status. |
+| `evidence/explain-fallback.png` | Simulated adapter failure produces a safe fallback explanation. The deterministic Available status remains unchanged. |
 
 ---
 
